@@ -5,25 +5,50 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Reports - Church Management System</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@300;400;600;700&display=swap" rel="stylesheet">
+ <style>
+  body {
+    font-family: 'Nunito', sans-serif;
+  }
+
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+</style>
 </head>
-<body class="bg-gray-50">
+<body class="bg-gray-50 bg-gradient-to-br from-blue-50 via-white to-purple-50">
   <div class="min-h-screen">
     <!-- Header with Navigation -->
     <div class="bg-white shadow-sm border-b">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex items-center justify-between h-16">
+        <div class="flex flex-col gap-3 py-4 sm:h-16 sm:flex-row sm:items-center sm:justify-between">
           <div class="flex items-center gap-3">
             <img src="{{ asset('images/icons/church-icon.png') }}" alt="Church Icon" class="h-10 w-10">
             <h1 class="text-xl font-semibold text-gray-900">Church Management</h1>
           </div>
-          <div class="flex items-center gap-4">
-            <button class="relative p-2 text-gray-600 hover:text-gray-900">
-              <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path>
-              </svg>
-              <span class="absolute top-1 right-1 h-2 w-2 bg-red-500 rounded-full"></span>
-            </button>
-            <button class="px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-900">Logout</button>
+          <div class="flex flex-wrap items-center gap-2 sm:gap-4">
+
+    <!-- Logged-in User -->
+    <div class="flex items-center gap-2 text-gray-700 font-medium">
+        <img src="{{ asset('images/icons/user-icon.png') }}" alt="User Icon" class="h-6 w-6">
+
+        {{ Auth::user()->username }}
+    </div>
+
+    <!-- Logout -->
+    <form action="{{ route('auth.logout') }}" method="POST">
+        @csrf
+        <button type="submit" class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-[#111827] border border-gray-300 rounded-md bg-[#F2F8FF] hover:bg-[#e8f1fb] transition-colors duration-200">          <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"></path>
+            </svg>
+            Logout
+        </button>
+    </form>
           </div>
         </div>
       </div>
@@ -32,13 +57,13 @@
     <!-- Navigation Tabs -->
     <div class="bg-white border-b">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <nav class="flex space-x-8">
-          <a href="{{ route('dashboard') }}" class="border-b-2 border-transparent py-4 px-1 text-sm font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300">Dashboard</a>
-          <a href="{{ route('member') }}" class="border-b-2 border-transparent py-4 px-1 text-sm font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300">Members</a>
-          <a href="{{ route('event') }}" class="border-b-2 border-transparent py-4 px-1 text-sm font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300">Events</a>
-          <a href="{{ route('attendance') }}" class="border-b-2 border-transparent py-4 px-1 text-sm font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300">Attendance</a>
-          <a href="{{ route('report') }}" class="border-b-2 border-blue-600 py-4 px-1 text-sm font-medium text-blue-600">Reports</a>
-        </nav>
+        <nav class="flex gap-4 overflow-x-auto whitespace-nowrap scrollbar-hide">
+          <a href="{{ route('dashboard') }}" class="border-b-2 border-transparent py-4 px-1 text-sm font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300 duration-200">Dashboard</a>
+          <a href="{{ route('members.index') }}" class="border-b-2 border-transparent py-4 px-1 text-sm font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300 duration-200">Members</a>
+          <a href="{{ route('events.index') }}" class="border-b-2 border-transparent py-4 px-1 text-sm font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300 duration-200">Events</a>
+          <a href="{{ route('attendance') }}" class="border-b-2 border-transparent py-4 px-1 text-sm font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300 duration-200">Attendance</a>
+          <a href="{{ route('report') }}" class="border-b-2 border-blue-600 py-4 px-1 text-sm font-medium text-blue-600 duration-200">Reports</a>
+                  </nav>
       </div>
     </div>
 
@@ -46,12 +71,12 @@
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div class="space-y-6">
         <!-- Header -->
-        <div class="flex items-center justify-between">
+        <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div>
             <h2 class="text-3xl font-semibold text-gray-900">Reports & Analytics</h2>
             <p class="text-gray-600 mt-2">Comprehensive insights into church attendance and member engagement</p>
           </div>
-          <div class="w-48">
+          <div class="w-full sm:w-56">
             <select class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
               <option value="7days">Last 7 Days</option>
               <option value="30days" selected>Last 30 Days</option>
@@ -65,7 +90,7 @@
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <div class="bg-white rounded-lg shadow border">
             <div class="px-6 py-4">
-              <div class="flex items-center justify-between">
+              <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                 <div>
                   <p class="text-sm text-gray-600">Total Members</p>
                   <p class="text-3xl font-semibold text-gray-900">45</p>
@@ -79,7 +104,7 @@
 
           <div class="bg-white rounded-lg shadow border">
             <div class="px-6 py-4">
-              <div class="flex items-center justify-between">
+              <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                 <div>
                   <p class="text-sm text-gray-600">Total Events</p>
                   <p class="text-3xl font-semibold text-gray-900">12</p>
@@ -93,7 +118,7 @@
 
           <div class="bg-white rounded-lg shadow border">
             <div class="px-6 py-4">
-              <div class="flex items-center justify-between">
+              <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                 <div>
                   <p class="text-sm text-gray-600">Total Attendance</p>
                   <p class="text-3xl font-semibold text-gray-900">328</p>
@@ -107,7 +132,7 @@
 
           <div class="bg-white rounded-lg shadow border">
             <div class="px-6 py-4">
-              <div class="flex items-center justify-between">
+              <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                 <div>
                   <p class="text-sm text-gray-600">Avg. Attendance</p>
                   <p class="text-3xl font-semibold text-gray-900">27</p>
@@ -300,4 +325,7 @@
     </div>
   </div>
 </body>
+<script>
+    
+</script>
 </html>

@@ -1,35 +1,22 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Api;
 
+use App\Http\Controllers\Controller;
 use App\Models\Members;
 use App\Models\Address;
-use App\Models\Ministry;
 use Illuminate\Http\Request;
 
 class MemberController extends Controller
-{   
-
-    public function member()
-    {
-        $members = Members::with(['address', 'ministries'])->get();
-        $ministries = Ministry::all();
-
-        return view('members', compact('members', 'ministries'));
-    }
-
+{
     public function index()
     {
         $members = Members::with(['address', 'ministries'])->get();
-        $ministries = Ministry::all();
 
-        return view('members', compact('members', 'ministries'));
-    }
-
-    public function create()
-    {
-        $ministries = Ministry::all();
-        return view('members.create', compact('ministries'));
+        return response()->json([
+            'success' => true,
+            'data' => $members,
+        ]);
     }
 
     public function store(Request $request)
@@ -69,21 +56,21 @@ class MemberController extends Controller
             $member->ministries()->attach($validatedData['ministry_id']);
         }
 
-        return redirect()->route('members.index')->with('success', 'Member added successfully!');
+        return response()->json([
+            'success' => true,
+            'message' => 'Member created successfully.',
+            'data' => $member->load(['address', 'ministries']),
+        ], 201);
     }
 
     public function show($id)
     {
         $member = Members::with(['address', 'ministries'])->findOrFail($id);
-        return view('members.show', compact('member'));
-    }
 
-    public function edit($id)
-    {
-        $member = Members::with(['address', 'ministries'])->findOrFail($id);
-        $ministries = Ministry::all();
-
-        return view('members.edit', compact('member', 'ministries'));
+        return response()->json([
+            'success' => true,
+            'data' => $member,
+        ]);
     }
 
     public function update(Request $request, $id)
@@ -129,10 +116,14 @@ class MemberController extends Controller
             $member->ministries()->detach();
         }
 
-        return redirect()->route('members.index')->with('success', 'Member updated successfully!');
+        return response()->json([
+            'success' => true,
+            'message' => 'Member updated successfully.',
+            'data' => $member->load(['address', 'ministries']),
+        ]);
     }
 
-    public function destroy($id)
+    public function destroy(Request $request, $id)
     {
         $member = Members::findOrFail($id);
 
@@ -140,7 +131,9 @@ class MemberController extends Controller
         Address::where('member_id', $member->member_id)->delete();
         $member->delete();
 
-        return redirect()->route('members.index')->with('success', 'Member deleted successfully!');
+        return response()->json([
+            'success' => true,
+            'message' => 'Member deleted successfully.',
+        ]);
     }
-    
 }

@@ -16,9 +16,9 @@ return new class extends Migration
         $table->unsignedBigInteger('member_id');
         $table->unsignedBigInteger('event_id');
         $table->unsignedBigInteger('admin_id');
-        $table->date('date_attended');
-        $table->time('time_attended');
+        $table->timestamp('attended_at')->useCurrent();
         $table->string('status');
+        $table->timestamps();
 
         $table->foreign('member_id')
               ->references('member_id')
@@ -34,6 +34,8 @@ return new class extends Migration
               ->references('admin_id')
               ->on('admins')
               ->onDelete('cascade');
+
+        $table->unique(['member_id', 'event_id']);
     });
 }
 

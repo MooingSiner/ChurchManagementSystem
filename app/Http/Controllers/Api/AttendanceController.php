@@ -12,7 +12,7 @@ class AttendanceController extends Controller
 {
     public function attendance(Request $request)
     {
-        $events = Event::orderBy('start_date', 'desc')->get();
+        $events = Event::with('type')->orderBy('start_date', 'desc')->get();
 
         $selectedEventId = $request->event_id ?? $events->first()?->event_id;
 
@@ -22,24 +22,26 @@ class AttendanceController extends Controller
         $availableMembers = collect();
 
         if ($selectedEventId) {
-            $selectedEvent = Event::find($selectedEventId);
+            $selectedEvent = Event::with('type')->find($selectedEventId);
 
             $approvedAttendances = Attendance::with('member')
                 ->where('event_id', $selectedEventId)
                 ->where('status', 'Present')
-                ->latest('attended_at')
+                ->orderByDesc('attended_at')
                 ->get();
 
             $pendingAttendances = Attendance::with('member')
                 ->where('event_id', $selectedEventId)
                 ->where('status', 'Pending')
-                ->latest('attended_at')
+                ->orderByDesc('attended_at')
                 ->get();
 
             $alreadyAddedMemberIds = Attendance::where('event_id', $selectedEventId)
                 ->pluck('member_id');
 
-            $availableMembers = Members::whereNotIn('member_id', $alreadyAddedMemberIds)->get();
+            $availableMembers = Members::whereNotIn('member_id', $alreadyAddedMemberIds)
+                ->orderBy('member_fname')
+                ->get();
         }
 
         $totalApproved = $approvedAttendances->count();
@@ -84,6 +86,7 @@ class AttendanceController extends Controller
     public function approve($id)
     {
         $attendance = Attendance::findOrFail($id);
+
         $attendance->update([
             'status' => 'Present',
             'admin_id' => Auth::id(),
@@ -98,6 +101,7 @@ class AttendanceController extends Controller
     {
         $attendance = Attendance::findOrFail($id);
         $eventId = $attendance->event_id;
+
         $attendance->delete();
 
         return redirect()->route('attendance', ['event_id' => $eventId])
@@ -108,6 +112,7 @@ class AttendanceController extends Controller
     {
         $attendance = Attendance::findOrFail($id);
         $eventId = $attendance->event_id;
+
         $attendance->delete();
 
         return redirect()->route('attendance', ['event_id' => $eventId])

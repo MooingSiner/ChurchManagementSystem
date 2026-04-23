@@ -25,6 +25,8 @@ return new class extends Migration
               ->references('ministry_id')
               ->on('ministries')
               ->onDelete('cascade');
+
+        $table->unique(['member_id', 'ministry_id']);
     });
 }
 

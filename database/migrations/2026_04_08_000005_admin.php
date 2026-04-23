@@ -15,7 +15,9 @@ return new class extends Migration
         $table->id('admin_id');
         $table->string('username')->unique();
         $table->string('password');
+        $table->enum('role',['super_admin','admin'])->default('admin');
         $table->unsignedBigInteger('member_id')->nullable();
+        $table->timestamps();
 
         $table->foreign('member_id')
               ->references('member_id')

@@ -16,15 +16,11 @@ return new class extends Migration
         $table->string('member_fname');
         $table->string('member_mname')->nullable();
         $table->string('member_lname');
+        $table->string('gender');
         $table->date('birth_date');
         $table->string('email')->unique();
-        $table->string('phone_number');
-        $table->unsignedBigInteger('address_id');
-
-        $table->foreign('address_id')
-              ->references('address_id')
-              ->on('address')
-              ->onDelete('cascade');
+        $table->string('phone_number')->unique();
+        $table->timestamps();
     });
 }
 

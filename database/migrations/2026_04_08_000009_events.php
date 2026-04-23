@@ -19,8 +19,10 @@ return new class extends Migration
         $table->time('start_time');
         $table->time('end_time');
         $table->text('description')->nullable();
+        $table->enum('status', ['ongoing', 'finished'])->default('ongoing');
         $table->unsignedBigInteger('type_id');
         $table->unsignedBigInteger('admin_id');
+        $table->timestamps();
 
         $table->foreign('type_id')
               ->references('type_id')

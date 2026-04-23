@@ -15,9 +15,18 @@ return new class extends Migration
         $table->id('address_id');
         $table->string('province');
         $table->string('city');
-        $table->string('street');
+        $table->string('street')->nullable();
+        $table->unsignedBigInteger('member_id')->unique();
+        $table->timestamps();
+
+        $table->foreign('member_id')
+              ->references('member_id')
+              ->on('members')
+              ->onDelete('cascade');
     });
-}
+    
+}   
+    
 
     /**
      * Reverse the migrations.

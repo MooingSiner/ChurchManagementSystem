@@ -5,13 +5,28 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Grace Community Church</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <style>
+  body {
+    font-family: 'Nunito', sans-serif;
+  }
+
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+</style>
 </head>
 <body>
   <div class="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
     <!-- Header -->
     <div class="bg-white shadow-sm border-b">
       <div class="max-w-7xl mx-auto px-4 py-4 sm:px-6 lg:px-8">
-        <div class="flex items-center justify-between">
+        <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div class="flex items-center gap-3">
             <!-- Church Icon -->
             <img src="{{ asset('images/icons/church-icon.png') }}" alt="Church Icon" class="h-10 w-10">
@@ -20,13 +35,15 @@
               <p class="text-sm text-gray-600">Welcome to our church family</p>
             </div>
           </div>
-          <button class="inline-flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
+           <form action="{{ route('login') }}" method="GET">
+          <button type="submit" class="flex-1 inline-flex items-center justify-center px-4 py-2 border border-1 rounded-md shadow-sm text-sm font-medium text-[#111827] bg-[#F2F8FF] hover:bg-[#e8f1fb]" ">
             <!-- Login Icon -->
             <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"></path>
             </svg>
             Login
           </button>
+          </form>
         </div>
       </div>
     </div>
@@ -36,8 +53,8 @@
       <div class="space-y-12">
         <!-- Hero Section -->
         <div class="text-center space-y-4">
-          <h2 class="text-4xl font-semibold text-gray-900">Welcome Home</h2>
-          <p class="text-xl text-gray-600 max-w-2xl mx-auto">
+          <h2 class="text-3xl sm:text-4xl font-semibold text-gray-900">Welcome Home</h2>
+          <p class="text-base sm:text-xl text-gray-600 max-w-2xl mx-auto px-2">
             We're glad you're here! Members can mark their attendance for today's service using their member ID.
           </p>
         </div>
@@ -74,7 +91,7 @@
               </div>
               <div class="space-y-3">
                 <!-- Scan ID Card Button -->
-                <button class="w-full inline-flex items-center justify-center px-4 py-3 border border-transparent rounded-md shadow-sm text-base font-medium text-white bg-blue-600 hover:bg-blue-700">
+                <button class="w-full inline-flex items-center justify-center px-4 py-3 border border-transparent rounded-md text-sm font-medium text-[#F2F8FF] bg-[#030213] hover:bg-[#0a0920]">
                   <!-- Scan Icon -->
                   <svg class="h-5 w-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"></path>

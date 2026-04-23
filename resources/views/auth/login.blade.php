@@ -10,8 +10,8 @@
   <div class="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center p-4">
     <div class="w-full max-w-md">
       <div class="text-center mb-8">
-        <div class="inline-flex items-center justify-center w-16 h-16 rounded-full mb-4 bg-blue-100">
-          <img src="{{ asset('images/icons/church-icon.png') }}" alt="Church Icon" class="h-10 w-10">
+        <div class="inline-flex items-center justify-center w-40 h-40 rounded-full mb-4 bg-blue-100">
+          <img src="{{ asset('images/icons/LOGO.png') }}" alt="Church Icon" class="h-24 w-24">
         </div>
         <h1 class="text-3xl font-semibold text-gray-900">Grace Community Church</h1>
         <p class="text-gray-600 mt-2">Church Management System</p>
@@ -29,11 +29,7 @@
               {{ $errors->first() }}
             </div>
           @endif
-          @if ($errors->any())
-    <div class="mb-4 p-3 bg-red-100 border border-red-300 text-red-700 rounded">
-        {{ $errors->first() }}
-    </div>
-@endif
+      
           <form class="space-y-4" action="{{ route('auth.login.submit') }}" method="POST">
             @csrf
 
@@ -66,8 +62,8 @@
                 Back
               </a>
 
-              <button type="submit" class="flex-1 inline-flex items-center justify-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 transition-colors duration-200">
-                Login
+              <button type="submit" class="flex-1 inline-flex items-center justify-center px-4 py-2 rounded-md text-sm font-medium text-[#F2F8FF] bg-[#030213] hover:bg-[#0a0920]">
+                Continue
               </button>
             </div>
           </form>
