@@ -37,7 +37,8 @@
               {{ Auth::user()->username }}
             </div>
 
-            <form action="{{ route('auth.logout') }}" method="POST">
+            <form action="{{ route('auth.logout') }}" method="POST" onsubmit = "return confirmForm(this, 'Confirm Logout', 'Are you sure you want to logout?')">
+
               @csrf
               <button type="submit" class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-[#111827] border border-gray-300 rounded-md bg-[#F2F8FF] hover:bg-[#e8f1fb] transition-colors duration-200">
                 <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -59,7 +60,8 @@
           <a href="{{ route('events.index') }}" class="border-b-2 border-transparent py-4 px-1 text-sm font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300 duration-200">Events</a>
           <a href="{{ route('attendance') }}" class="border-b-2 border-blue-600 py-4 px-1 text-sm font-medium text-blue-600 duration-200">Attendance</a>
           <a href="{{ route('report') }}" class="border-b-2 border-transparent py-4 px-1 text-sm font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300 duration-200">Reports</a>
-           </nav>
+           
+        </nav>
       </div>
     </div>
 
@@ -70,11 +72,6 @@
           <p class="text-gray-600 mt-2">Manage attendance records and approve member submissions</p>
         </div>
 
-        @if(session('success'))
-          <div class="bg-green-100 border border-green-200 text-green-700 px-4 py-3 rounded-lg">
-            {{ session('success') }}
-          </div>
-        @endif
 
         @if($errors->any())
           <div class="bg-red-100 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
@@ -93,7 +90,9 @@
           <div class="px-6 py-4">
             <form method="GET" action="{{ route('attendance') }}" class="space-y-4">
               <select name="event_id" onchange="this.form.submit()" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-                <option value="">Choose an event...</option>
+                <option value="">
+                    {{ $events->isEmpty() ? 'No events available' : 'Choose an event...' }}
+                </option>
                 @foreach($events as $event)
                   <option value="{{ $event->event_id }}" {{ optional($selectedEvent)->event_id == $event->event_id ? 'selected' : '' }}>
                     {{ $event->event_name }} - {{ \Carbon\Carbon::parse($event->start_date)->format('m/d/Y') }}
@@ -101,6 +100,7 @@
                 @endforeach
               </select>
             </form>
+            
 
             @if($selectedEvent)
               <div class="mt-4 p-4 bg-gray-50 rounded-lg space-y-2">
@@ -121,6 +121,7 @@
             @endif
           </div>
         </div>
+        @if($events->isNotEmpty())
 
         <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
           <div class="bg-white rounded-lg shadow border">
@@ -204,7 +205,8 @@
                           <div class="text-sm text-gray-600">{{ $member->email }}</div>
                         </div>
 
-                        <form action="{{ route('attendance.manual') }}" method="POST">
+                        <form action="{{ route('attendance.manual') }}" method="POST"
+      onsubmit="return confirmForm(this, 'Confirm Attendance', 'Add attendance for this member?')">
                           @csrf
                           <input type="hidden" name="event_id" value="{{ $selectedEvent->event_id }}">
                           <input type="hidden" name="member_id" value="{{ $member->member_id }}">
@@ -251,7 +253,8 @@
                     </div>
 
                     <div class="flex gap-2">
-                      <form action="{{ route('attendance.approve', $attendance->attendance_id) }}" method="POST" class="flex-1">
+                      <form action="{{ route('attendance.approve', $attendance->attendance_id) }}" method="POST" class="flex-1"
+                      onsubmit="return confirmForm(this, 'Confirm Approve', 'Approve this attendance?')">
                         @csrf
                         @method('PUT')
                         <button type="submit" class="w-full flex items-center justify-center gap-1 px-3 py-2 text-sm font-medium text-white bg-green-600 hover:bg-green-700 rounded">
@@ -262,7 +265,8 @@
                         </button>
                       </form>
 
-                      <form action="{{ route('attendance.reject', $attendance->attendance_id) }}" method="POST" class="flex-1">
+                      <form action="{{ route('attendance.reject', $attendance->attendance_id) }}" method="POST" class="flex-1"
+      onsubmit="return confirmForm(this, 'Confirm Reject', 'Reject this attendance?')">
                         @csrf
                         @method('DELETE')
                         <button type="submit" class="w-full flex items-center justify-center gap-1 px-3 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded">
@@ -301,7 +305,8 @@
                     </div>
                   </div>
 
-                  <form action="{{ route('attendance.destroy', $attendance->attendance_id) }}" method="POST">
+                  <form action="{{ route('attendance.destroy', $attendance->attendance_id) }}" method="POST"
+      onsubmit="return dangerconfirmForm(this, 'Confirm Remove', 'Remove this attendance record?')">
                     @csrf
                     @method('DELETE')
                     <button type="submit" class="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50 rounded">
@@ -318,9 +323,29 @@
           </div>
         </div>
       </div>
+      @endif
     </div>
   </div>
-
+  <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+  <script>
+function showToast(message, type = 'success') {
+    Toastify({
+        text: message,
+        duration: 3000,
+        gravity: "top",
+        position: "right",
+        close: true,
+        style: {
+            background: type === 'error' ? "#7f1d1d" : "#16a34a",
+            color: "#F2F8FF",
+            borderRadius: "8px",
+            padding: "12px 16px",
+            fontFamily: "Nunito"
+        }
+    }).showToast();
+}
+</script>
   <script>
     
 
@@ -349,5 +374,121 @@
       });
     }
   </script>
+  @if(session('success'))
+<script>
+    showToast("{{ session('success') }}", "success");
+</script>
+@endif
+
+@if(session('error'))
+<script>
+    showToast("{{ session('error') }}", "error");
+</script>
+@endif
+<div id="confirmModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-[9999]">
+    <div class="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
+
+        <h3 id="confirmTitle" class="text-xl font-semibold text-gray-900 mb-3">
+            Confirm Action
+        </h3>
+
+        <p id="confirmMessage" class="text-sm text-gray-600 mb-6">
+            Are you sure?
+        </p>
+
+        <div class="flex justify-end gap-3">
+
+            <!-- Cancel -->
+            <button type="button" onclick="closeConfirmModal()"
+                class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
+                Cancel
+            </button>
+
+            <!-- Confirm (UPDATED COLOR) -->
+            <button type="button" id="confirmButton"
+                class="px-4 py-2 rounded-md text-sm font-medium bg-[#030213] text-[#F2F8FF] hover:bg-[#0a0920] transition">
+                Confirm
+            </button>
+
+        </div>
+    </div>
+</div>
+<div id="dangerConfirmModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-[9999]">
+    <div class="bg-white rounded-lg shadow-xl max-w-md w-full p-6 border border-red-200">
+
+        <h3 id="dangerTitle" class="text-xl font-semibold text-red-600 mb-3">
+            Confirm Action
+        </h3>
+
+        <p id="dangerMessage" class="text-sm text-gray-600 mb-6">
+            This action cannot be undone.
+        </p>
+
+        <div class="flex justify-end gap-3">
+
+            <!-- Cancel -->
+            <button type="button" onclick="closeDangerModal()"
+                class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
+                Cancel
+            </button>
+
+            <!-- Confirm (RED) -->
+            <button type="button" id="dangerConfirmButton"
+                class="px-4 py-2 rounded-md text-sm font-medium text-white bg-red-600 hover:bg-red-700 transition">
+                Confirm
+            </button>
+
+        </div>
+    </div>
+</div>
+
+<script>
+let selectedForm = null;
+
+function confirmForm(form, title, message) {
+    selectedForm = form;
+
+    document.getElementById('confirmTitle').innerText = title;
+    document.getElementById('confirmMessage').innerText = message;
+    document.getElementById('confirmModal').classList.remove('hidden');
+
+    return false;
+}
+function dangerconfirmForm(form, title, message) {
+    selectedForm = form;
+
+    document.getElementById('dangerTitle').innerText = title;
+    document.getElementById('dangerMessage').innerText = message;
+    document.getElementById('dangerConfirmModal').classList.remove('hidden');
+    document.getElementById('dangerConfirmButton').addEventListener('click', function () {
+    if (selectedForm) {
+        selectedForm.submit();
+    }
+});
+    
+
+    return false;
+}
+
+function closeDangerModal() {
+    selectedForm = null;
+    document.getElementById('dangerConfirmModal').classList.add('hidden');
+
+
+    return false;
+}
+
+
+function closeConfirmModal() {
+    selectedForm = null;
+    document.getElementById('confirmModal').classList.add('hidden');
+}
+
+document.getElementById('confirmButton').addEventListener('click', function () {
+    if (selectedForm) {
+        selectedForm.submit();
+    }
+});
+</script>
 </body>
 </html>

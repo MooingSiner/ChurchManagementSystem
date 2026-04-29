@@ -40,7 +40,8 @@
     </div>
 
     <!-- Logout -->
-    <form action="{{ route('auth.logout') }}" method="POST">
+    <form action="{{ route('auth.logout') }}" method="POST" onsubmit = "return confirmForm(this, 'Confirm Logout', 'Are you sure you want to logout?')">
+
         @csrf
         <button type="submit" class="inline-flex w-full sm:w-auto items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-[#111827] border border-gray-300 rounded-md bg-[#F2F8FF] hover:bg-[#e8f1fb] transition-colors duration-200">        
             <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -63,7 +64,8 @@
           <a href="{{ route('events.index') }}" class="border-b-2 border-blue-600 py-4 px-1 text-sm font-medium text-blue-600 duration-200">Events</a>
           <a href="{{ route('attendance') }}" class="border-b-2 border-transparent py-4 px-1 text-sm font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300 duration-200">Attendance</a>
           <a href="{{ route('report') }}" class="border-b-2 border-transparent py-4 px-1 text-sm font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300 duration-200">Reports</a>
-                  </nav>
+          
+        </nav>
       </div>
     </div>
 
@@ -99,7 +101,7 @@
             </p>
 
             <button onclick="openEventModal()"
-                class="inline-flex w-full sm:w-auto items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700">
+                class="inline-flex w-full sm:w-auto items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-[#F2F8FF] bg-[#030213] rounded-md hover:bg-[#0a0920] transition-colors duration-200">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
                 </svg>
@@ -110,11 +112,36 @@
 @else
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         @foreach($events as $event)
-            <div class="bg-white rounded-lg shadow border">
+            <div class="bg-white rounded-lg shadow border"
+                  data-end="{{ $event->end_date }} {{ $event->end_time }}"
+                  data-id="{{ $event->event_id }}">
                 <div class="px-6 py-4 border-b">
                     <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                         <div class="space-y-1 flex-1">
+                            @php
+                            $now = now();
+                            $start = \Carbon\Carbon::parse($event->start_date . ' ' . $event->start_time);
+                            $end = \Carbon\Carbon::parse($event->end_date . ' ' . $event->end_time);
+
+                            if ($now->lt($start)) {
+                                $status = 'Upcoming';
+                                $color = 'bg-yellow-100 text-yellow-700';
+                            } elseif ($now->between($start, $end)) {
+                                $status = 'Ongoing';
+                                $color = 'bg-green-100 text-green-700';
+                            } else {
+                                $status = 'Finished';
+                                $color = 'bg-red-100 text-red-700';
+                            }
+                        @endphp
+
+                        <div class="flex items-start justify-between gap-3">
                             <h3 class="text-lg font-semibold">{{ $event->event_name }}</h3>
+
+                            <span class="px-2 py-1 rounded text-xs font-medium {{ $color }}">
+                                {{ $status }}
+                            </span>
+                        </div>
                             <div>
                                 <span class="inline-block px-2 py-1 rounded text-xs font-medium bg-blue-100 text-blue-700">
                                     {{ $event->type->type_name ?? 'No Type' }}
@@ -142,7 +169,7 @@
                             </button>
 
                             <form action="{{ route('events.destroy', $event->event_id) }}" method="POST"
-                                  onsubmit="return confirm('Are you sure you want to delete this event?');">
+      onsubmit="return dangerconfirmForm(this, 'Confirm Delete', 'Are you sure you want to delete this event?')">
                                 @csrf
                                 @method('DELETE')
                                 <button type="submit" class="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50 rounded">
@@ -179,29 +206,30 @@
                     <p class="text-sm text-gray-600 pt-2 border-t">
                         {{ $event->description ?? 'No description available.' }}
                     </p>
-        @if($event->status !== 'finished')
-            <div class="pt-3 border-t">
-                <form action="{{ route('events.finish', $event->event_id) }}" method="POST"
-                    onsubmit="return confirm('Mark this event as finished?');">
-                    @csrf
-                    @method('PUT')
-
-                    <button type="submit"
-                        class="w-full px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700">
-                        Complete Event
-                    </button>
-                </form>
-            </div>
-        @else
-            <div class="pt-3 border-t">
-                <span class="block w-full text-center px-4 py-2 text-sm font-medium text-white bg-gray-400 rounded-md">
-                    Event Finished
-                </span>
-            </div>
-        @endif
-                        </div>
-                    </div>
-                @endforeach
+                <div id="event-status-{{ $event->event_id }}">
+            @if($event->status !== 'finished')
+                <div class="pt-3 border-t">
+                    <form action="{{ route('events.finish', $event->event_id) }}" method="POST"
+      onsubmit="return confirmForm(this, 'Confirm Complete', 'Mark this event as finished?')">
+                        @csrf
+                        @method('PUT')
+                        <button type="submit"
+                            class="w-full px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700">
+                            Complete Event
+                        </button>
+                    </form>
+                </div>
+            @else
+                <div class="pt-3 border-t">
+                    <span class="block w-full text-center px-4 py-2 text-sm font-medium text-white bg-gray-400 rounded-md">
+                        Event Finished
+                    </span>
+                </div>
+            @endif
+        </div>
+    </div>
+</div>
+@endforeach
             </div>
         @endif
           
@@ -218,12 +246,14 @@
         <p class="text-sm text-gray-600 mt-1">Enter the details of the new event.</p>
       </div>
       <div class="px-6 py-4">
-        <form class="space-y-4" action="{{ route('events.store') }}" method="POST">
+        <form class="space-y-4" action="{{ route('events.store') }}" method="POST"
+      onsubmit="return confirmForm(this, 'Confirm Create', 'Are you sure you want to create this event?')">
     @csrf
           <div>
             <label for="eventName" class="block text-sm font-medium text-gray-700 mb-1">Event Name</label>
             <input
               id="eventName"
+              name="event_name"
               type="text"
               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               placeholder="Sunday Worship Service"
@@ -245,6 +275,7 @@
               <label for="startDate" class="block text-sm font-medium text-gray-700 mb-1">Start Date</label>
               <input
                 id="startDate"
+                name="start_date"
                 type="date"
                 class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 required
@@ -254,6 +285,7 @@
               <label for="startTime" class="block text-sm font-medium text-gray-700 mb-1">Start Time</label>
               <input
                 id="startTime"
+                name="start_time"
                 type="time"
                 class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 required
@@ -266,6 +298,7 @@
               <label for="endDate" class="block text-sm font-medium text-gray-700 mb-1">End Date</label>
               <input
                 id="endDate"
+                name="end_date"
                 type="date"
                 class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 required
@@ -275,6 +308,7 @@
               <label for="endTime" class="block text-sm font-medium text-gray-700 mb-1">End Time</label>
               <input
                 id="endTime"
+                name="end_time"
                 type="time"
                 class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 required
@@ -286,6 +320,7 @@
             <label for="description" class="block text-sm font-medium text-gray-700 mb-1">Description</label>
             <textarea
               id="description"
+              name="description"
               rows="3"
               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
               placeholder="Event details and information..."
@@ -313,7 +348,8 @@
         </div>
 
         <div class="px-6 py-4">
-            <form id="editEventForm" method="POST" class="space-y-4">
+            <form id="editEventForm" method="POST" class="space-y-4"
+      onsubmit="return confirmForm(this, 'Confirm Update', 'Are you sure you want to update this event?')">
                 @csrf
                 @method('PUT')
 
@@ -379,7 +415,26 @@
         </div>
     </div>
   </div>
-
+  <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+  <script>
+function showToast(message, type = 'success') {
+    Toastify({
+        text: message,
+        duration: 3000,
+        gravity: "top",
+        position: "right",
+        close: true,
+        style: {
+            background: type === 'error' ? "#7f1d1d" : "#030213",
+            color: "#F2F8FF",
+            borderRadius: "8px",
+            padding: "12px 16px",
+            fontFamily: "Nunito"
+        }
+    }).showToast();
+}
+</script>
   <script>
     function openEventModal() {
       document.getElementById('eventModal').classList.remove('hidden');
@@ -416,6 +471,153 @@
         document.getElementById('editEventModal').classList.add('hidden');
     }
 
+    function checkEvents() {
+    const events = document.querySelectorAll('[data-end]');
+
+    events.forEach(event => {
+        const endTime = new Date(event.getAttribute('data-end'));
+        const now = new Date();
+
+        const eventId = event.getAttribute('data-id');
+        const statusDiv = document.getElementById('event-status-' + eventId);
+
+        if (now >= endTime) {
+            // Change UI instantly
+            if (statusDiv) {
+                statusDiv.innerHTML = `
+                    <div class="pt-3 border-t">
+                        <span class="block w-full text-center px-4 py-2 text-sm font-medium text-white bg-gray-400 rounded-md">
+                            Event Finished
+                        </span>
+                    </div>
+                `;
+            }
+        }
+    });
+}
+
+// Run every 5 seconds
+setInterval(checkEvents, 5000);
+
+// Run immediately
+checkEvents();
+
+</script>
+@if(session('success'))
+<script>
+    showToast("{{ session('success') }}", "success");
+</script>
+@endif
+
+@if(session('error'))
+<script>
+    showToast("{{ session('error') }}", "error");
+</script>
+@endif
+<div id="confirmModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-[9999]">
+    <div class="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
+
+        <h3 id="confirmTitle" class="text-xl font-semibold text-gray-900 mb-3">
+            Confirm Action
+        </h3>
+
+        <p id="confirmMessage" class="text-sm text-gray-600 mb-6">
+            Are you sure?
+        </p>
+
+        <div class="flex justify-end gap-3">
+
+            <!-- Cancel -->
+            <button type="button" onclick="closeConfirmModal()"
+                class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
+                Cancel
+            </button>
+
+            <!-- Confirm (UPDATED COLOR) -->
+            <button type="button" id="confirmButton"
+                class="px-4 py-2 rounded-md text-sm font-medium bg-[#030213] text-[#F2F8FF] hover:bg-[#0a0920] transition">
+                Confirm
+            </button>
+
+        </div>
+    </div>
+</div>
+<div id="dangerConfirmModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-[9999]">
+    <div class="bg-white rounded-lg shadow-xl max-w-md w-full p-6 border border-red-200">
+
+        <h3 id="dangerTitle" class="text-xl font-semibold text-red-600 mb-3">
+            Confirm Action
+        </h3>
+
+        <p id="dangerMessage" class="text-sm text-gray-600 mb-6">
+            This action cannot be undone.
+        </p>
+
+        <div class="flex justify-end gap-3">
+
+            <!-- Cancel -->
+            <button type="button" onclick="closeDangerModal()"
+                class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
+                Cancel
+            </button>
+
+            <!-- Confirm (RED) -->
+            <button type="button" id="dangerConfirmButton"
+                class="px-4 py-2 rounded-md text-sm font-medium text-white bg-red-600 hover:bg-red-700 transition">
+                Confirm
+            </button>
+
+        </div>
+    </div>
+</div>
+
+<script>
+let selectedForm = null;
+
+function confirmForm(form, title, message) {
+    selectedForm = form;
+
+    document.getElementById('confirmTitle').innerText = title;
+    document.getElementById('confirmMessage').innerText = message;
+    document.getElementById('confirmModal').classList.remove('hidden');
+    
+
+    return false;
+}
+function dangerconfirmForm(form, title, message) {
+    selectedForm = form;
+
+    document.getElementById('dangerTitle').innerText = title;
+    document.getElementById('dangerMessage').innerText = message;
+    document.getElementById('dangerConfirmModal').classList.remove('hidden');
+    document.getElementById('dangerConfirmButton').addEventListener('click', function () {
+    if (selectedForm) {
+        selectedForm.submit();
+    }
+});
+    
+
+    return false;
+}
+
+function closeDangerModal() {
+    selectedForm = null;
+    document.getElementById('dangerConfirmModal').classList.add('hidden');
+
+
+    return false;
+}
+
+function closeConfirmModal() {
+    selectedForm = null;
+    document.getElementById('confirmModal').classList.add('hidden');
+}
+
+document.getElementById('confirmButton').addEventListener('click', function () {
+    if (selectedForm) {
+        selectedForm.submit();
+    }
+});
 </script>
 </body>
 </html>

@@ -20,6 +20,9 @@ return new class extends Migration
         $table->date('birth_date');
         $table->string('email')->unique();
         $table->string('phone_number')->unique();
+        $table->string('province');
+        $table->string('city');
+        $table->string('street')->nullable();
         $table->timestamps();
     });
 }

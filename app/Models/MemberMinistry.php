@@ -13,5 +13,7 @@ class MemberMinistry extends Model
     protected $fillable = [
         'member_id',
         'ministry_id',
+        'role_in_ministry',
+        'date_joined',
     ];
 }

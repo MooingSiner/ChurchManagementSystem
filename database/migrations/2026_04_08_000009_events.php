@@ -19,7 +19,7 @@ return new class extends Migration
         $table->time('start_time');
         $table->time('end_time');
         $table->text('description')->nullable();
-        $table->enum('status', ['ongoing', 'finished'])->default('ongoing');
+        $table->enum('status', ['upcoming', 'ongoing', 'finished'])->default('upcoming');
         $table->unsignedBigInteger('type_id');
         $table->unsignedBigInteger('admin_id');
         $table->timestamps();

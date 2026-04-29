@@ -8,21 +8,24 @@ class Members extends Model
 {
     protected $table = 'members';
     protected $primaryKey = 'member_id';
-
-    protected $fillable = [
-        'member_fname',
-        'member_mname',
-        'member_lname',
-        'gender',
-        'birth_date',
-        'email',
-        'phone_number',
+    protected $casts = ['is_archived' => 'boolean',
+        'archived_at' => 'datetime',
     ];
 
-    public function address()
-    {
-        return $this->hasOne(Address::class, 'member_id', 'member_id');
-    }
+    protected $fillable = [
+    'member_fname',
+    'member_mname',
+    'member_lname',
+    'gender',
+    'birth_date',
+    'email',
+    'phone_number',
+    'province',
+    'city',
+    'street',
+    'is_archived',
+    'archived_at',
+];
 
     public function ministries()
     {
@@ -30,7 +33,7 @@ class Members extends Model
             Ministry::class,
             'members_ministries',
             'member_id',
-            'ministry_id'
+            'ministry_id',
         );
     }
 

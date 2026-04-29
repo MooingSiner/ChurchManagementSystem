@@ -40,9 +40,11 @@
     </div>
 
     <!-- Logout -->
-    <form action="{{ route('auth.logout') }}" method="POST">
+    <form action="{{ route('auth.logout') }}" method="POST" onsubmit = "return confirmForm(this, 'Confirm Logout', 'Are you sure you want to logout?')">
+
         @csrf
-       <button type="submit" class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-[#111827] border border-gray-300 rounded-md bg-[#F2F8FF] hover:bg-[#e8f1fb] transition-colors duration-200">          <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <button type="submit" class="inline-flex w-full sm:w-auto items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-[#111827] border border-gray-300 rounded-md bg-[#F2F8FF] hover:bg-[#e8f1fb] transition-colors duration-200">        
+            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"></path>
             </svg>
             Logout
@@ -77,25 +79,43 @@
         <!-- Stats Grid -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <!-- Total Members Card -->
-          <div class="bg-white rounded-lg shadow border">
-  <div class="px-6 py-4 space-y-4">
-    
-    <div class="flex items-start justify-between">
-      <div>
-        <p class="text-sm text-gray-600">Total Members</p>
-        <p class="text-xs text-gray-500 mt-1">42 approved <span class="text-amber-600">• 3 pending</span></p>
-      </div>
+<div class="bg-white rounded-lg shadow border">
+    <div class="px-6 py-4">
+        
+        <!-- Header -->
+        <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between pb-2">
+            <h3 class="text-sm font-medium text-gray-600">Total Members</h3>
 
-      <div class="flex items-center gap-2">
-        <span class="text-3xl font-semibold text-gray-900 leading-none">45</span>
-        <svg class="h-5 w-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
-        </svg>
-      </div>
+            <svg class="h-5 w-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z">
+                </path>
+            </svg>
+        </div>
+
+        <!-- SIDE BY SIDE -->
+        <div class="flex items-end justify-between">
+            
+            <!-- Sub Info (LEFT) -->
+            <div class="text-xs text-gray-500">
+                {{ $totalMembers }} active 
+                <span class="text-amber-600">• {{ $archivedMembers }} archived</span>
+            </div>
+
+            <!-- Main Number (RIGHT) -->
+            <div class="text-3xl font-semibold text-gray-900">
+                {{ $totalMembers }}
+            </div>
+
+        </div>
+
+        <!-- Link -->
+        <a href="{{ route('members.index') }}"
+            class="text-sm text-blue-600 hover:underline mt-2 inline-block">
+            View all members
+        </a>
+
     </div>
-
-    <a href="#" class="text-sm text-blue-600 hover:underline inline-block">View all members</a>
-  </div>
 </div>
 
           <!-- Total Events Card -->
@@ -107,8 +127,8 @@
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
                 </svg>
               </div>
-              <div class="text-3xl font-semibold text-gray-900 text-right">12</div>
-              <a href="#" class="text-sm text-blue-600 hover:underline mt-2 inline-block">View all events</a>
+              <div class="text-3xl font-semibold text-gray-900 text-right">{{ $totalEvents }}</div>
+              <a href="{{ route('events.index') }}" class="text-sm text-blue-600 hover:underline mt-2 inline-block">View all events</a>
             </div>
           </div>
 
@@ -121,8 +141,8 @@
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path>
                 </svg>
               </div>
-              <div class="text-3xl font-semibold text-gray-900 text-right">328</div>
-              <a href="#" class="text-sm text-blue-600 hover:underline mt-2 inline-block">Mark attendance</a>
+              <div class="text-3xl font-semibold text-gray-900 text-right">{{ $attendanceRecords }}</div>
+              <a href="{{ route('attendance') }}" class="text-sm text-blue-600 hover:underline mt-2 inline-block">Mark attendance</a>
             </div>
           </div>
 
@@ -135,8 +155,8 @@
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
                 </svg>
               </div>
-              <div class="text-3xl font-semibold text-gray-900 text-right">27</div>
-              <a href="#" class="text-sm text-blue-600 hover:underline mt-2 inline-block">View reports</a>
+              <div class="text-3xl font-semibold text-gray-900 text-right">{{ $averageAttendance }}</div>
+              <a href="{{ route('report') }}" class="text-sm text-blue-600 hover:underline mt-2 inline-block">View reports</a>
             </div>
           </div>
         </div>
@@ -147,8 +167,8 @@
             <h3 class="text-lg font-semibold">Recent Event Attendance</h3>
           </div>
           <div class="px-6 py-4">
-            <div class="h-64 flex items-center justify-center bg-gray-50 rounded">
-              <p class="text-gray-500">Chart placeholder - Bar chart showing attendance data</p>
+            <div class="h-64 bg-gray-50 rounded p-4">
+              <canvas id="recentAttendanceChart"></canvas>
             </div>
           </div>
         </div>
@@ -160,7 +180,7 @@
           </div>
           <div class="px-6 py-4">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <a href="#" class="flex items-center gap-3 p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+              <a href="{{ route('members.index') }}" class="flex items-center gap-3 p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
                 <svg class="h-6 w-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"></path>
                 </svg>
@@ -170,7 +190,7 @@
                 </div>
               </a>
 
-              <a href="#" class="flex items-center gap-3 p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+              <a href="{{ route('events.create') }}" class="flex items-center gap-3 p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
                 <svg class="h-6 w-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
                 </svg>
@@ -180,7 +200,7 @@
                 </div>
               </a>
 
-              <a href="#" class="flex items-center gap-3 p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+              <a href="{{ route('attendance') }}" class="flex items-center gap-3 p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
                 <svg class="h-6 w-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path>
                 </svg>
@@ -190,7 +210,7 @@
                 </div>
               </a>
 
-              <a href="#" class="flex items-center gap-3 p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+              <a href="{{ route('report') }}" class="flex items-center gap-3 p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
                 <svg class="h-6 w-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
                 </svg>
@@ -205,30 +225,112 @@
       </div>
     </div>
   </div>
-</body>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
 <script>
-    function toggleNotifications(event) {
-    event.stopPropagation();
+function showToast(message, type = 'success') {
+    Toastify({
+        text: message,
+        duration: 3000,
+        gravity: "top",
+        position: "right",
+        close: true,
+        style: {
+            background: type === 'error' ? "#7f1d1d" : "#030213",
+            color: "#F2F8FF",
+            borderRadius: "8px",
+            padding: "12px 16px",
+            fontFamily: "Nunito"
+        }
+    }).showToast();
 
-    const dropdown = document.getElementById('notificationDropdown');
-    const isHidden = dropdown.classList.contains('opacity-0');
+}
+</script>
+<script>
+  const recentEventLabels = @json($recentEvents->pluck('event_name'));
+  const recentEventData = @json($recentEvents->pluck('attendance_count'));
 
-    if (isHidden) {
-        dropdown.classList.remove('opacity-0', 'scale-95', '-translate-y-2', 'pointer-events-none');
-        dropdown.classList.add('opacity-100', 'scale-100', 'translate-y-0');
-    } else {
-        dropdown.classList.remove('opacity-100', 'scale-100', 'translate-y-0');
-        dropdown.classList.add('opacity-0', 'scale-95', '-translate-y-2', 'pointer-events-none');
+  new Chart(document.getElementById('recentAttendanceChart'), {
+    type: 'bar',
+    data: {
+      labels: recentEventLabels,
+      datasets: [{
+        label: 'Attendance',
+        data: recentEventData
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false
     }
+  });
+</script>
+<div id="confirmModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-[9999]">
+    <div class="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
+
+        <h3 id="confirmTitle" class="text-xl font-semibold text-gray-900 mb-3">
+            Confirm Action
+        </h3>
+
+        <p id="confirmMessage" class="text-sm text-gray-600 mb-6">
+            Are you sure?
+        </p>
+
+        <div class="flex justify-end gap-3">
+
+            <!-- Cancel -->
+            <button type="button" onclick="closeConfirmModal()"
+                class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
+                Cancel
+            </button>
+
+            <!-- Confirm (UPDATED COLOR) -->
+            <button type="button" id="confirmButton"
+                class="px-4 py-2 rounded-md text-sm font-medium bg-[#030213] text-[#F2F8FF] hover:bg-[#0a0920] transition">
+                Confirm
+            </button>
+
+        </div>
+    </div>
+</div>
+<script>
+let selectedForm = null;
+
+function confirmForm(form, title, message) {
+    selectedForm = form;
+
+    document.getElementById('confirmTitle').innerText = title;
+    document.getElementById('confirmMessage').innerText = message;
+    document.getElementById('confirmModal').classList.remove('hidden');
+
+    return false;
 }
 
-document.addEventListener('click', function (e) {
-    const dropdown = document.getElementById('notificationDropdown');
+function closeConfirmModal() {
+    selectedForm = null;
+    document.getElementById('confirmModal').classList.add('hidden');
+}
 
-    if (!e.target.closest('#notificationDropdown') && !e.target.closest('button')) {
-        dropdown.classList.remove('opacity-100', 'scale-100', 'translate-y-0');
-        dropdown.classList.add('opacity-0', 'scale-95', '-translate-y-2', 'pointer-events-none');
+document.getElementById('confirmButton').addEventListener('click', function () {
+    if (selectedForm) {
+        selectedForm.submit();
     }
 });
 </script>
+  
+</script>
+@if(session('success'))
+<script>
+    showToast("{{ session('success') }}", "success");
+</script>
+@endif
+
+@if(session('error'))
+<script>
+    showToast("{{ session('error') }}", "error");
+</script>
+@endif
+</body>
+
 </html>

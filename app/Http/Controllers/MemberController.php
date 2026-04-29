@@ -3,28 +3,35 @@
 namespace App\Http\Controllers;
 
 use App\Models\Members;
-use App\Models\Address;
 use App\Models\Ministry;
 use Illuminate\Http\Request;
+use Exception;
 
 class MemberController extends Controller
 {   
 
     public function member()
     {
-        $members = Members::with(['address', 'ministries'])->get();
+        $members = Members::with(['ministries'])->get();
         $ministries = Ministry::all();
 
         return view('members', compact('members', 'ministries'));
     }
 
     public function index()
-    {
-        $members = Members::with(['address', 'ministries'])->get();
-        $ministries = Ministry::all();
+{
+    $members = Members::with(['ministries'])
+        ->where('is_archived', false)
+        ->get();
 
-        return view('members', compact('members', 'ministries'));
-    }
+    $archivedMembers = Members::with(['ministries'])
+        ->where('is_archived', true)
+        ->get();
+
+    $ministries = Ministry::all();
+
+    return view('members', compact('members', 'archivedMembers', 'ministries'));
+}
 
     public function create()
     {
@@ -34,6 +41,7 @@ class MemberController extends Controller
 
     public function store(Request $request)
     {
+    try{
         $validatedData = $request->validate([
             'member_fname' => 'required|string|max:255',
             'member_mname' => 'nullable|string|max:255',
@@ -49,38 +57,39 @@ class MemberController extends Controller
         ]);
 
         $member = Members::create([
-            'member_fname' => $validatedData['member_fname'],
-            'member_mname' => $validatedData['member_mname'] ?? null,
-            'member_lname' => $validatedData['member_lname'],
-            'gender' => $validatedData['gender'],
-            'birth_date' => $validatedData['birth_date'],
-            'email' => $validatedData['email'],
-            'phone_number' => $validatedData['phone_number'],
-        ]);
-
-        Address::create([
-            'street' => $validatedData['street'] ?? null,
-            'city' => $validatedData['city'] ?? null,
-            'province' => $validatedData['province'] ?? null,
-            'member_id' => $member->member_id,
-        ]);
+    'member_fname' => $validatedData['member_fname'],
+    'member_mname' => $validatedData['member_mname'] ?? null,
+    'member_lname' => $validatedData['member_lname'],
+    'gender' => $validatedData['gender'],
+    'birth_date' => $validatedData['birth_date'],
+    'email' => $validatedData['email'],
+    'phone_number' => $validatedData['phone_number'],
+    'street' => $validatedData['street'] ?? null,
+    'city' => $validatedData['city'] ?? null,
+    'province' => $validatedData['province'] ?? null,
+]);
 
         if (!empty($validatedData['ministry_id'])) {
             $member->ministries()->attach($validatedData['ministry_id']);
         }
 
-        return redirect()->route('members.index')->with('success', 'Member added successfully!');
+        return redirect()->back()->with('success', 'Member added successfully');
+        }catch(Exception $e) {
+        return redirect()->back()
+            ->withInput()
+            ->with('error', 'Failed to add member. Please check the details and try again.');
+    }
     }
 
     public function show($id)
     {
-        $member = Members::with(['address', 'ministries'])->findOrFail($id);
+        $member = Members::with(['ministries'])->findOrFail($id);
         return view('members.show', compact('member'));
     }
 
     public function edit($id)
     {
-        $member = Members::with(['address', 'ministries'])->findOrFail($id);
+        $member = Members::with(['ministries'])->findOrFail($id);
         $ministries = Ministry::all();
 
         return view('members.edit', compact('member', 'ministries'));
@@ -88,6 +97,7 @@ class MemberController extends Controller
 
     public function update(Request $request, $id)
     {
+        try{
         $member = Members::findOrFail($id);
 
         $validatedData = $request->validate([
@@ -105,23 +115,19 @@ class MemberController extends Controller
         ]);
 
         $member->update([
-            'member_fname' => $validatedData['member_fname'],
-            'member_mname' => $validatedData['member_mname'] ?? null,
-            'member_lname' => $validatedData['member_lname'],
-            'gender' => $validatedData['gender'],
-            'birth_date' => $validatedData['birth_date'],
-            'email' => $validatedData['email'],
-            'phone_number' => $validatedData['phone_number'],
-        ]);
+    'member_fname' => $validatedData['member_fname'],
+    'member_mname' => $validatedData['member_mname'] ?? null,
+    'member_lname' => $validatedData['member_lname'],
+    'gender' => $validatedData['gender'],
+    'birth_date' => $validatedData['birth_date'],
+    'email' => $validatedData['email'],
+    'phone_number' => $validatedData['phone_number'],
+    'street' => $validatedData['street'] ?? null,
+    'city' => $validatedData['city'] ?? null,
+    'province' => $validatedData['province'] ?? null,
+]);
 
-        Address::updateOrCreate(
-            ['member_id' => $member->member_id],
-            [
-                'street' => $validatedData['street'] ?? null,
-                'city' => $validatedData['city'] ?? null,
-                'province' => $validatedData['province'] ?? null,
-            ]
-        );
+    
 
         if (!empty($validatedData['ministry_id'])) {
             $member->ministries()->sync([$validatedData['ministry_id']]);
@@ -129,18 +135,50 @@ class MemberController extends Controller
             $member->ministries()->detach();
         }
 
-        return redirect()->route('members.index')->with('success', 'Member updated successfully!');
+        return redirect()->back()->with('success', 'Member updated successfully');
+        }catch (Exception $e) {
+        return redirect()->back()
+            ->withInput()
+            ->with('error', 'Failed to update member. Please check the details and try again.');
+    }
     }
 
     public function destroy($id)
-    {
-        $member = Members::findOrFail($id);
+{
+    try{
+    $member = Members::findOrFail($id);
 
-        $member->ministries()->detach();
-        Address::where('member_id', $member->member_id)->delete();
-        $member->delete();
+    $member->update([
+        'is_archived' => true,
+        'archived_at' => now(),
+    ]);
 
-        return redirect()->route('members.index')->with('success', 'Member deleted successfully!');
+    return redirect()->back()
+        ->with('error', 'Member archived successfully!');
+    }catch(Exception $e) {
+        return redirect()->back()
+            ->withInput()
+            ->with('error', 'Failed to archive member. Please check the details and try again.');
     }
+}
+    
+public function restore($id)
+{
+    try{
+    $member = Members::findOrFail($id);
+
+    $member->update([
+        'is_archived' => false,
+        'archived_at' => null,
+    ]);
+
+    return redirect()->back()
+        ->with('success', 'Member restored successfully!');
+    }catch(Exception $e) {
+        return redirect()->back()
+            ->withInput()
+            ->with('error', 'Failed to restore member. Please check the details and try again.');
+    }
+}
     
 }

@@ -15,17 +15,12 @@ class Admin extends Authenticatable
         'username',
         'password',
         'role',
-        'member_id',
     ];
 
     protected $hidden = [
         'password',
     ];
 
-    public function member()
-    {
-        return $this->belongsTo(Members::class, 'member_id', 'member_id');
-    }
 
     public function events()
     {

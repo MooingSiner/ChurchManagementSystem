@@ -7,6 +7,7 @@ use App\Models\Event;
 use App\Models\Members;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Exception;
 
 class AttendanceController extends Controller
 {
@@ -60,6 +61,7 @@ class AttendanceController extends Controller
 
     public function addManual(Request $request)
     {
+        try{
         $validated = $request->validate([
             'event_id' => 'required|exists:events,event_id',
             'member_id' => 'required|exists:members,member_id',
@@ -77,12 +79,17 @@ class AttendanceController extends Controller
             ]
         );
 
-        return redirect()->route('attendance', ['event_id' => $validated['event_id']])
-            ->with('success', 'Attendance added successfully.');
+        return redirect()->back()->with('success', 'Attendance added successfully.');
+        }catch(Exception $e) {
+            return redirect()->back()
+                ->withInput()
+                ->with('error', 'Failed to add attendance. Please check the details and try again.');
+        }
     }
 
     public function approve($id)
     {
+        try{
         $attendance = Attendance::findOrFail($id);
         $attendance->update([
             'status' => 'Present',
@@ -90,27 +97,42 @@ class AttendanceController extends Controller
             'attended_at' => now(),
         ]);
 
-        return redirect()->route('attendance', ['event_id' => $attendance->event_id])
-            ->with('success', 'Attendance approved.');
+        return redirect()->back()->with('success', 'Attendance approved.');
+        }catch(Exception $e) {
+        return redirect()->back()
+            ->withInput()
+            ->with('error', 'Failed to approve to attendance. Please check the details and try again.');
+    }
     }
 
     public function reject($id)
     {
+        try{
         $attendance = Attendance::findOrFail($id);
         $eventId = $attendance->event_id;
         $attendance->delete();
 
-        return redirect()->route('attendance', ['event_id' => $eventId])
-            ->with('success', 'Attendance rejected.');
+        return redirect()->back()->with('error', 'Attendance rejected.');
+        }catch
+        (Exception $e) {
+        return redirect()->back()
+            ->withInput()
+            ->with('error', 'Failed to reject member to attendance. Please check the details and try again.');
+    }
     }
 
     public function destroy($id)
     {
+        try{
         $attendance = Attendance::findOrFail($id);
         $eventId = $attendance->event_id;
         $attendance->delete();
 
-        return redirect()->route('attendance', ['event_id' => $eventId])
-            ->with('success', 'Attendance removed.');
+        return redirect()->back()->with('error', 'Attendance removed.');
+        }catch(Exception $e) {
+        return redirect()->back()
+            ->withInput()
+            ->with('error', 'Failed to remove member from attendance. Please check the details and try again.');
+    }
     }
 }

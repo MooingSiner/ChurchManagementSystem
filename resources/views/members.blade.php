@@ -41,7 +41,8 @@
     </div>
 
     <!-- Logout -->
-    <form action="{{ route('auth.logout') }}" method="POST">
+    <form action="{{ route('auth.logout') }}" method="POST" onsubmit = "return confirmForm(this, 'Confirm Logout', 'Are you sure you want to logout?')">
+
         @csrf
         <button type="submit" class="inline-flex w-full sm:w-auto items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-[#111827] border border-gray-300 rounded-md bg-[#F2F8FF] hover:bg-[#e8f1fb] transition-colors duration-200">          <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"></path>
@@ -84,118 +85,268 @@
             Add Member
           </button>
         </div>
+      
+<!-- Member Toggle -->
+<div class="bg-gray-200 rounded-2xl p-1 grid grid-cols-2 gap-1">
+    <button type="button" id="approvedBtn" onclick="showApproved()"
+        class="py-2 text-sm font-semibold rounded-xl bg-white shadow text-[#030213] transition">
+        Approved Members
+    </button>
+
+    <button type="button" id="archivedBtn" onclick="showArchived()"
+        class="py-2 text-sm font-semibold rounded-xl text-[#030213] transition">
+        Archived Members
+    </button>
+</div>
+
+<!-- Approved Members Section -->
+<div id="approvedSection">
     @if($members->isEmpty())
-    <!-- Empty State -->
-    <div class="bg-white border border-gray-200 rounded-lg p-12 mt-6">
-        <div class="flex flex-col items-center justify-center py-12">
-            
-            <!-- Icon -->
-            <svg class="w-16 h-16 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-                    d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/>
-            </svg>
-
-            <!-- Text -->
-            <p class="text-gray-500 text-sm mb-4">
-                No members yet. Add your first member to get started.
-            </p>
-
-            <!-- Button -->
-            <button onclick="openAddMemberModal()"
-                class="inline-flex w-full sm:w-auto items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700">
-                
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M12 4v16m8-8H4"/>
+        <div class="bg-white border border-gray-200 rounded-lg p-12 mt-6">
+            <div class="flex flex-col items-center justify-center py-12">
+                <svg class="w-16 h-16 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                        d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/>
                 </svg>
 
-                Add Member
-            </button>
+                <p class="text-gray-500 text-sm mb-4">
+                    No members yet. Add your first member to get started.
+                </p>
+
+                <button onclick="openAddMemberModal()"
+                    class="inline-flex w-full sm:w-auto items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-[#F2F8FF] bg-[#030213] rounded-md hover:bg-[#0a0920]">
+                    Add Member
+                </button>
+            </div>
         </div>
-    </div>
-@else
-    <!-- Members List -->
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        @foreach($members as $member)
-            <div class="bg-white rounded-lg shadow border w-full">
-            <div class="px-6 py-4 border-b">
-                <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                    <div>
-                        <h3 class="text-lg font-semibold">
-                            {{ $member->member_fname }} {{ $member->member_lname }}
-                        </h3>
-                        <p class="text-sm text-gray-500 mt-1">
-                            {{ $member->gender }}
-                        </p>
+    @else
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            @foreach($members as $member)
+                <div class="bg-white rounded-lg shadow border w-full">
+                    <div class="px-6 py-4 border-b">
+                        <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                            <div>
+                                <h3 class="text-lg font-semibold">
+                                    {{ $member->member_fname }} {{ $member->member_lname }}
+                                </h3>
+                                <p class="text-sm text-gray-500 mt-1">
+                                    {{ $member->gender }}
+                                </p>
+                            </div>
+
+                            <div class="flex gap-1">
+                                <button 
+                                    onclick="openEditMemberModal(
+                                        '{{ $member->member_id }}',
+                                        '{{ $member->member_fname }}',
+                                        '{{ $member->member_mname }}',
+                                        '{{ $member->member_lname }}',
+                                        '{{ $member->gender }}',
+                                        '{{ $member->birth_date }}',
+                                        '{{ $member->email }}',
+                                        '{{ $member->phone_number }}',
+                                        '{{ $member->street }}',
+                                        '{{ $member->city }}',
+                                        '{{ $member->province }}',
+                                        '{{ $member->ministries->first()->ministry_id ?? '' }}'
+                                    )"
+                                    class="h-8 w-8 p-0 text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded">
+                                    <svg class="h-4 w-4 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                                    </svg>
+                                </button>
+
+                                <form action="{{ route('members.destroy', $member->member_id) }}" method="POST"
+      onsubmit="return dangerconfirmForm(this, 'Confirm Archive', 'Are you sure you want to archive this member?')">
+                                    @csrf
+                                    @method('DELETE')
+
+                                    <button type="submit" class="h-8 w-8 flex items-center justify-center text-gray-600 hover:text-gray-700 hover:bg-gray-50 rounded transition-colors">
+                                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"/>
+                                    </svg>
+                                </button>
+                                </form>
+                            </div>
+                        </div>
                     </div>
 
-                    <div class="flex gap-1">
-                        <button 
-    onclick="openEditMemberModal(
-        '{{ $member->member_id }}',
-        '{{ $member->member_fname }}',
-        '{{ $member->member_mname }}',
-        '{{ $member->member_lname }}',
-        '{{ $member->gender }}',
-        '{{ $member->birth_date }}',
-        '{{ $member->email }}',
-        '{{ $member->phone_number }}',
-        '{{ optional($member->address)->street }}',
-        '{{ optional($member->address)->province }}',
-        '{{ optional($member->address)->city }}'
-    )"
-    class="h-8 w-8 p-0 text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded">
-    <svg class="h-4 w-4 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
-    </svg>
-</button>
-
-                        <form action="{{ route('members.destroy', $member->member_id) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this member?');">
-                            @csrf
-                            @method('DELETE')
-                            <button type="submit" class="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50 rounded">
-                                <svg class="h-4 w-4 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                    <div class="px-6 py-4 space-y-2">
+                        <div class="flex items-center gap-2 text-sm text-gray-600" >
+                          <svg class="h-4 w-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
                                 </svg>
-                            </button>
-                        </form>
+                          {{ $member->email }}</div>
+                        <div class="flex items-center gap-2 text-sm text-gray-600" >
+                          <svg class="h-4 w-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/>
+                                </svg>
+                          {{ $member->phone_number }}</div>
+
+                        <div class="flex items-center gap-2 text-sm text-gray-600" >
+                          <svg class="h-4 w-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                </svg>
+                            '{{ $member->street }}',
+                            '{{ $member->province }}',
+                            '{{ $member->city }}'
+                        </div>
+
+                        <div class="flex items-center gap-2 text-sm text-gray-600" >
+                          <svg class="h-4 w-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 15.546c-.523 0-1.046.151-1.5.454a2.704 2.704 0 01-3 0 2.704 2.704 0 00-3 0 2.704 2.704 0 01-3 0 2.704 2.704 0 00-3 0 2.704 2.704 0 01-3 0 2.701 2.701 0 00-1.5-.454M9 6v2m3-2v2m3-2v2M9 3h.01M12 3h.01M15 3h.01M21 21v-7a2 2 0 00-2-2H5a2 2 0 00-2 2v7h18zm-3-9v-2a2 2 0 00-2-2H8a2 2 0 00-2 2v2h12z"/>
+                                </svg>
+                            {{ $member->birth_date }}
+                        </div>
+
+                        <div class="flex items-center gap-2 text-sm text-gray-600" >
+                          <svg class="h-4 w-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+                                </svg>
+                            @forelse($member->ministries as $ministry)
+                                <span class="inline-block px-2 py-1 rounded text-xs font-medium bg-blue-100 text-blue-700">
+                                    {{ $ministry->ministry_name }}
+                                </span>
+                            @empty
+                                <span class="text-gray-400">No ministry</span>
+                            @endforelse
+                        </div>
                     </div>
                 </div>
-            </div>
+            @endforeach
+        </div>
+    @endif
+</div>
 
-            <div class="px-6 py-4 space-y-2">
-                <div class="text-sm text-gray-600">{{ $member->email }}</div>
-                <div class="text-sm text-gray-600">{{ $member->phone_number }}</div>
+<!-- Archived Members Section -->
+<div id="archivedSection" class="hidden">
+    @if($archivedMembers->isEmpty())
+        <div class="bg-white border border-gray-200 rounded-lg p-12 mt-6">
+            <div class="flex flex-col items-center justify-center py-12">
+                <svg class="w-16 h-16 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                        d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"/>
+                </svg>
 
-                <div class="text-sm text-gray-600">
-                    {{ optional($member->address)->street }},
-                    {{ optional($member->address)->city }},
-                    {{ optional($member->address)->province }}
-                </div>
-
-                <div class="text-sm text-gray-600">
-                    {{ $member->birth_date }}
-                </div>
-
-                <div class="text-sm text-gray-600">
-                    @forelse($member->ministries as $ministry)
-                        <span class="inline-block px-2 py-1 rounded text-xs font-medium bg-blue-100 text-blue-700">
-                            {{ $ministry->ministry_name }}
-                        </span>
-                    @empty
-                        <span class="text-gray-400">No ministry</span>
-                    @endforelse
-                </div>
+                <p class="text-gray-500 text-sm">
+                    No archived members yet.
+                </p>
             </div>
         </div>
-    @endforeach
-</div>
-@endif
+    @else
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            @foreach($archivedMembers as $member)
+                <div class="bg-white rounded-lg shadow border w-full opacity-80">
+                    <div class="px-6 py-4 border-b">
+                        <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                            <div>
+                                <h3 class="text-lg font-semibold">
+                                    {{ $member->member_fname }} {{ $member->member_lname }}
+                                </h3>
+                                <p class="text-sm text-gray-500 mt-1">
+                                    {{ $member->gender }}
+                                </p>
+                            </div>
+                            <div class="flex gap-1">
+                            <button 
+                              onclick="openEditMemberModal(
+                                  '{{ $member->member_id }}',
+                                  '{{ $member->member_fname }}',
+                                  '{{ $member->member_mname }}',
+                                  '{{ $member->member_lname }}',
+                                  '{{ $member->gender }}',
+                                  '{{ $member->birth_date }}',
+                                  '{{ $member->email }}',
+                                  '{{ $member->phone_number }}',
+                                  '{{ $member->street }}',
+                                  '{{ $member->province }}',
+                                  '{{ $member->city }}',
+                                  '{{ $member->ministries->first()->ministry_id ?? '' }}'
+                              )"
+                              class="h-8 w-8 p-0 text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded">
+                              <svg class="h-4 w-4 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                      d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                              </svg>
+                          </button>
+                            <form action="{{ route('members.restore', $member->member_id) }}" method="POST"
+      onsubmit="return confirmForm(this, 'Confirm Restore', 'Are you sure you want to restore this member?')">
+                                @csrf
+                                @method('PUT')
 
+                                <button type="submit"
+                                    class="h-8 w-8 flex items-center justify-center text-green-600 hover:text-green-700 hover:bg-green-50 rounded transition-colors">
+                                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                                    </svg>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                  </div>
+
+                     <div class="px-6 py-4 space-y-2">
+                        <div class="flex items-center gap-2 text-sm text-gray-600" >
+                          <svg class="h-4 w-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                                </svg>
+                          {{ $member->email }}</div>
+                        <div class="flex items-center gap-2 text-sm text-gray-600" >
+                          <svg class="h-4 w-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/>
+                                </svg>
+                          {{ $member->phone_number }}</div>
+
+                        <div class="flex items-center gap-2 text-sm text-gray-600" >
+                          <svg class="h-4 w-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                </svg>
+                            '{{ $member->street }}',
+                            '{{ $member->province }}',
+                            '{{ $member->city }}'
+                        </div>
+
+                        <div class="flex items-center gap-2 text-sm text-gray-600" >
+                          <svg class="h-4 w-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 15.546c-.523 0-1.046.151-1.5.454a2.704 2.704 0 01-3 0 2.704 2.704 0 00-3 0 2.704 2.704 0 01-3 0 2.704 2.704 0 00-3 0 2.704 2.704 0 01-3 0 2.701 2.701 0 00-1.5-.454M9 6v2m3-2v2m3-2v2M9 3h.01M12 3h.01M15 3h.01M21 21v-7a2 2 0 00-2-2H5a2 2 0 00-2 2v7h18zm-3-9v-2a2 2 0 00-2-2H8a2 2 0 00-2 2v2h12z"/>
+                                </svg>
+                            {{ $member->birth_date }}
+                        </div>
+
+                        <div class="flex items-center gap-2 text-sm text-gray-600" >
+                          <svg class="h-4 w-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+                                </svg>
+                            @forelse($member->ministries as $ministry)
+                                <span class="inline-block px-2 py-1 rounded text-xs font-medium bg-blue-100 text-blue-700">
+                                    {{ $ministry->ministry_name }}
+                                </span>
+                            @empty
+                                <span class="text-gray-400">No ministry</span>
+                            @endforelse
+                        </div>
+                        <div class="flex items-center gap-2 text-sm text-orange-600 pt-2 border-t">
+                            <svg class="h-4 w-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"/>
+                            </svg>
+
+                            <span>
+                                Archived
+                                {{ $member->archived_at ? $member->archived_at->format('n/j/Y') : 'N/A' }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            @endforeach
+        </div>
+    @endif
+</div>
       </div>
     </div>
-  </div>
-
   <!-- Add Member Modal -->
   <div id="memberModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
     <div class="bg-white rounded-lg shadow-xl max-w-xl w-full max-h-[90vh] flex flex-col">
@@ -204,7 +355,8 @@
         <p class="text-sm text-gray-600" id="modalDescription">Enter the details of the new member.</p>
       </div>
       <div class="px-6 py-2 overflow-y-auto">
-        <form action="{{ route('members.store') }}" method="POST">
+        <form action="{{ route('members.store') }}" method="POST"
+      onsubmit="return confirmForm(this, 'Confirm Add', 'Are you sure you want to add this member?')">
          @csrf
           <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div class="flex-col">
@@ -306,7 +458,7 @@
             ></textarea>
           </div>
 
-           <div class="flex items-end gap-24">
+           <div class="grid grid-cols-1 md:grid-cols-2 md:gap-24">
             <div class="flex-col">
             <label for="province" class="block text-sm font-medium text-gray-700 mb-2 mt-2">Province</label>
             <input
@@ -373,7 +525,8 @@
     </div>
 
     <div class="px-6 py-2 overflow-y-auto">
-      <form id="editMemberForm" method="POST">
+      <form id="editMemberForm" method="POST"
+      onsubmit="return confirmForm(this, 'Confirm Update', 'Are you sure you want to update this member?')">
         @csrf
         @method('PUT')
 
@@ -489,7 +642,26 @@
     </div>
   </div>
 </div>
-
+<script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+<script>
+function showToast(message, type = 'success') {
+    Toastify({
+        text: message,
+        duration: 3000,
+        gravity: "top",
+        position: "right",
+        close: true,
+        style: {
+            background: type === 'error' ? "#7f1d1d" : "#030213",
+            color: "#F2F8FF",
+            borderRadius: "8px",
+            padding: "12px 16px",
+            fontFamily: "Nunito"
+        }
+    }).showToast();
+}
+</script>
   <script>
     
 
@@ -534,7 +706,141 @@ document.addEventListener('click', function (e) {
   function closeEditMemberModal() {
     document.getElementById('editMemberModal').classList.add('hidden');
   }
-  
+  function showApproved() {
+    document.getElementById('approvedSection').classList.remove('hidden');
+    document.getElementById('archivedSection').classList.add('hidden');
+
+    document.getElementById('approvedBtn').classList.add('bg-white', 'shadow', 'text-[#030213]');
+    document.getElementById('approvedBtn').classList.remove('text-gray-500');
+
+    document.getElementById('archivedBtn').classList.remove('bg-white', 'shadow', 'text-[#030213]');
+    document.getElementById('archivedBtn').classList.add('text-gray-500');
+}
+
+function showArchived() {
+    document.getElementById('approvedSection').classList.add('hidden');
+    document.getElementById('archivedSection').classList.remove('hidden');
+
+    document.getElementById('archivedBtn').classList.add('bg-white', 'shadow', 'text-[#030213]');
+    document.getElementById('archivedBtn').classList.remove('text-gray-500');
+
+    document.getElementById('approvedBtn').classList.remove('bg-white', 'shadow', 'text-[#030213]');
+    document.getElementById('approvedBtn').classList.add('text-gray-500');
+}
+</script>
+@if(session('success'))
+<script>
+    showToast("{{ session('success') }}", "success");
+</script>
+@endif
+
+@if(session('error'))
+<script>
+    showToast("{{ session('error') }}", "error");
+</script>
+@endif
+<div id="confirmModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-[9999]">
+    <div class="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
+
+        <h3 id="confirmTitle" class="text-xl font-semibold text-gray-900 mb-3">
+            Confirm Action
+        </h3>
+
+        <p id="confirmMessage" class="text-sm text-gray-600 mb-6">
+            Are you sure?
+        </p>
+
+        <div class="flex justify-end gap-3">
+
+            <!-- Cancel -->
+            <button type="button" onclick="closeConfirmModal()"
+                class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
+                Cancel
+            </button>
+
+            <!-- Confirm (UPDATED COLOR) -->
+            <button type="button" id="confirmButton"
+                class="px-4 py-2 rounded-md text-sm font-medium bg-[#030213] text-[#F2F8FF] hover:bg-[#0a0920] transition">
+                Confirm
+            </button>
+
+        </div>
+    </div>
+</div>
+<div id="dangerConfirmModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-[9999]">
+    <div class="bg-white rounded-lg shadow-xl max-w-md w-full p-6 border border-red-200">
+
+        <h3 id="dangerTitle" class="text-xl font-semibold text-red-600 mb-3">
+            Confirm Action
+        </h3>
+
+        <p id="dangerMessage" class="text-sm text-gray-600 mb-6">
+            This action cannot be undone.
+        </p>
+
+        <div class="flex justify-end gap-3">
+
+            <!-- Cancel -->
+            <button type="button" onclick="closeDangerModal()"
+                class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
+                Cancel
+            </button>
+
+            <!-- Confirm (RED) -->
+            <button type="button" id="dangerConfirmButton"
+                class="px-4 py-2 rounded-md text-sm font-medium text-white bg-red-600 hover:bg-red-700 transition">
+                Confirm
+            </button>
+
+        </div>
+    </div>
+</div>
+
+<script>
+let selectedForm = null;
+
+function confirmForm(form, title, message) {
+    selectedForm = form;
+
+    document.getElementById('confirmTitle').innerText = title;
+    document.getElementById('confirmMessage').innerText = message;
+    document.getElementById('confirmModal').classList.remove('hidden');
+
+    return false;
+}
+function dangerconfirmForm(form, title, message) {
+    selectedForm = form;
+
+    document.getElementById('dangerTitle').innerText = title;
+    document.getElementById('dangerMessage').innerText = message;
+    document.getElementById('dangerConfirmModal').classList.remove('hidden');
+    document.getElementById('dangerConfirmButton').addEventListener('click', function () {
+    if (selectedForm) {
+        selectedForm.submit();
+    }
+});
+    
+
+    return false;
+}
+
+function closeDangerModal() {
+    selectedForm = null;
+    document.getElementById('dangerConfirmModal').classList.add('hidden');
+
+
+    return false;
+}
+function closeConfirmModal() {
+    selectedForm = null;
+    document.getElementById('confirmModal').classList.add('hidden');
+}
+
+document.getElementById('confirmButton').addEventListener('click', function () {
+    if (selectedForm) {
+        selectedForm.submit();
+    }
+});
 </script>
 </body>
 </html>

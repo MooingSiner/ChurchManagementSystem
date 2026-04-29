@@ -58,7 +58,7 @@
             </div>
 
             <div class="flex gap-3 pt-2">
-              <a href="{{route('homepage') }}" class="flex-1 px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 text-center trasition-colors duration-200">
+              <a href="{{route('home') }}" class="flex-1 px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 text-center trasition-colors duration-200">
                 Back
               </a>
 

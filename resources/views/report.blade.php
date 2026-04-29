@@ -41,7 +41,8 @@
     </div>
 
     <!-- Logout -->
-    <form action="{{ route('auth.logout') }}" method="POST">
+    <form action="{{ route('auth.logout') }}" method="POST" onsubmit = "return confirmForm(this, 'Confirm Logout', 'Are you sure you want to logout?')">
+
         @csrf
         <button type="submit" class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-[#111827] border border-gray-300 rounded-md bg-[#F2F8FF] hover:bg-[#e8f1fb] transition-colors duration-200">          <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"></path>
@@ -63,7 +64,7 @@
           <a href="{{ route('events.index') }}" class="border-b-2 border-transparent py-4 px-1 text-sm font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300 duration-200">Events</a>
           <a href="{{ route('attendance') }}" class="border-b-2 border-transparent py-4 px-1 text-sm font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300 duration-200">Attendance</a>
           <a href="{{ route('report') }}" class="border-b-2 border-blue-600 py-4 px-1 text-sm font-medium text-blue-600 duration-200">Reports</a>
-                  </nav>
+        </nav>
       </div>
     </div>
 
@@ -76,14 +77,15 @@
             <h2 class="text-3xl font-semibold text-gray-900">Reports & Analytics</h2>
             <p class="text-gray-600 mt-2">Comprehensive insights into church attendance and member engagement</p>
           </div>
-          <div class="w-full sm:w-56">
-            <select class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-              <option value="7days">Last 7 Days</option>
-              <option value="30days" selected>Last 30 Days</option>
-              <option value="90days">Last 90 Days</option>
-              <option value="all">All Time</option>
-            </select>
-          </div>
+          <form method="GET" action="{{ route('report') }}" class="w-full sm:w-56">
+          <select name="range" onchange="this.form.submit()"
+              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+              <option value="7days" {{ $range === '7days' ? 'selected' : '' }}>Last 7 Days</option>
+              <option value="30days" {{ $range === '30days' ? 'selected' : '' }}>Last 30 Days</option>
+              <option value="90days" {{ $range === '90days' ? 'selected' : '' }}>Last 90 Days</option>
+              <option value="all" {{ $range === 'all' ? 'selected' : '' }}>All Time</option>
+          </select>
+          </form>
         </div>
 
         <!-- Summary Stats -->
@@ -93,7 +95,7 @@
               <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                 <div>
                   <p class="text-sm text-gray-600">Total Members</p>
-                  <p class="text-3xl font-semibold text-gray-900">45</p>
+                  <p class="text-3xl font-semibold text-gray-900">{{ $totalMembers }}</p>
                 </div>
                 <svg class="h-8 w-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
@@ -107,7 +109,7 @@
               <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                 <div>
                   <p class="text-sm text-gray-600">Total Events</p>
-                  <p class="text-3xl font-semibold text-gray-900">12</p>
+                  <p class="text-3xl font-semibold text-gray-900">{{ $totalEvents }}</p>
                 </div>
                 <svg class="h-8 w-8 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
@@ -121,7 +123,7 @@
               <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                 <div>
                   <p class="text-sm text-gray-600">Total Attendance</p>
-                  <p class="text-3xl font-semibold text-gray-900">328</p>
+                  <p class="text-3xl font-semibold text-gray-900">{{ $totalAttendance }}</p>
                 </div>
                 <svg class="h-8 w-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
@@ -135,7 +137,7 @@
               <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                 <div>
                   <p class="text-sm text-gray-600">Avg. Attendance</p>
-                  <p class="text-3xl font-semibold text-gray-900">27</p>
+                  <p class="text-3xl font-semibold text-gray-900">{{ $avgAttendance }}</p>
                 </div>
                 <svg class="h-8 w-8 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
@@ -146,124 +148,54 @@
         </div>
 
         <!-- Report History -->
-        <div class="bg-white rounded-lg shadow border">
-          <div class="px-6 py-4 border-b">
-            <h3 class="text-lg font-semibold">Report History</h3>
-          </div>
-          <div class="px-6 py-4">
-            <div class="space-y-2">
-              <!-- Report Item 1 -->
-              <div class="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
-                <div class="flex-1">
-                  <div class="font-medium text-gray-900">Sunday Worship Service</div>
-                  <div class="flex items-center gap-4 mt-1 text-sm text-gray-600">
-                    <div class="flex items-center gap-1">
-                      <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-                      </svg>
-                      <span>April 13, 2026</span>
-                    </div>
-                    <div class="flex items-center gap-1">
-                      <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                      </svg>
-                      <span>10:00 AM</span>
-                    </div>
-                  </div>
-                </div>
-                <div class="text-right">
-                  <div class="text-2xl font-semibold text-blue-600">33</div>
-                  <div class="text-xs text-gray-500">members attended</div>
-                </div>
-              </div>
+<div class="bg-white rounded-lg shadow border">
+    <div class="px-6 py-4 border-b">
+        <h3 class="text-lg font-semibold">Report History</h3>
+    </div>
 
-              <!-- Report Item 2 -->
-              <div class="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
-                <div class="flex-1">
-                  <div class="font-medium text-gray-900">Wednesday Prayer Meeting</div>
-                  <div class="flex items-center gap-4 mt-1 text-sm text-gray-600">
+    <div class="px-6 py-4">
+        <div class="space-y-2">
+    @forelse($reportHistory as $event)
+        <div class="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+            <div class="flex-1">
+                <div class="font-medium text-gray-900">{{ $event->event_name }}</div>
+                <div class="flex items-center gap-4 mt-1 text-sm text-gray-600 flex-wrap">
                     <div class="flex items-center gap-1">
-                      <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-                      </svg>
-                      <span>April 9, 2026</span>
+                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                        </svg>
+                        <span>{{ \Carbon\Carbon::parse($event->start_date)->format('F d, Y') }}</span>
                     </div>
                     <div class="flex items-center gap-1">
-                      <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                      </svg>
-                      <span>07:00 PM</span>
+                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        <span>{{ \Carbon\Carbon::parse($event->start_time)->format('h:i A') }}</span>
                     </div>
-                  </div>
-                </div>
-                <div class="text-right">
-                  <div class="text-2xl font-semibold text-blue-600">18</div>
-                  <div class="text-xs text-gray-500">members attended</div>
-                </div>
-              </div>
-
-              <!-- Report Item 3 -->
-              <div class="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
-                <div class="flex-1">
-                  <div class="font-medium text-gray-900">Sunday Worship Service</div>
-                  <div class="flex items-center gap-4 mt-1 text-sm text-gray-600">
-                    <div class="flex items-center gap-1">
-                      <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-                      </svg>
-                      <span>April 6, 2026</span>
+                    <div class="text-xs px-2 py-1 rounded bg-blue-100 text-blue-700">
+                        {{ $event->type->type_name ?? 'No Type' }}
                     </div>
-                    <div class="flex items-center gap-1">
-                      <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                      </svg>
-                      <span>10:00 AM</span>
-                    </div>
-                  </div>
                 </div>
-                <div class="text-right">
-                  <div class="text-2xl font-semibold text-blue-600">29</div>
-                  <div class="text-xs text-gray-500">members attended</div>
-                </div>
-              </div>
-
-              <!-- Report Item 4 -->
-              <div class="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
-                <div class="flex-1">
-                  <div class="font-medium text-gray-900">Easter Thanksgiving Service</div>
-                  <div class="flex items-center gap-4 mt-1 text-sm text-gray-600">
-                    <div class="flex items-center gap-1">
-                      <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-                      </svg>
-                      <span>March 31, 2026</span>
-                    </div>
-                    <div class="flex items-center gap-1">
-                      <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                      </svg>
-                      <span>09:00 AM</span>
-                    </div>
-                  </div>
-                </div>
-                <div class="text-right">
-                  <div class="text-2xl font-semibold text-blue-600">42</div>
-                  <div class="text-xs text-gray-500">members attended</div>
-                </div>
-              </div>
             </div>
-          </div>
+            <div class="text-right">
+                <div class="text-2xl font-semibold text-blue-600">{{ $event->approved_attendance_count }}</div>
+                <div class="text-xs text-gray-500">members attended</div>
+            </div>
         </div>
+        @empty
+        <p class="text-sm text-gray-500">No report history available.</p>
+       @endforelse
+    </div>
+  </div>
+</div>
 
         <!-- Attendance Trends Chart -->
         <div class="bg-white rounded-lg shadow border">
           <div class="px-6 py-4 border-b">
             <h3 class="text-lg font-semibold">Attendance by Event</h3>
           </div>
-          <div class="px-6 py-4">
-            <div class="h-64 flex items-center justify-center bg-gray-50 rounded">
-              <p class="text-gray-500">Line chart placeholder - Attendance trends over time</p>
-            </div>
+          <div class="px-6 py-4 h-64">
+          <canvas id="attendanceByEventChart"></canvas>
           </div>
         </div>
 
@@ -274,26 +206,8 @@
             <div class="px-6 py-4 border-b">
               <h3 class="text-lg font-semibold">Attendance by Event Type</h3>
             </div>
-            <div class="px-6 py-4">
-              <div class="h-64 flex items-center justify-center bg-gray-50 rounded">
-                <div class="text-center">
-                  <p class="text-gray-500 mb-4">Pie chart placeholder</p>
-                  <div class="space-y-2 text-sm">
-                    <div class="flex items-center gap-2 justify-center">
-                      <span class="w-3 h-3 bg-blue-500 rounded-full"></span>
-                      <span>Worship Service: 65%</span>
-                    </div>
-                    <div class="flex items-center gap-2 justify-center">
-                      <span class="w-3 h-3 bg-purple-500 rounded-full"></span>
-                      <span>Prayer Meeting: 25%</span>
-                    </div>
-                    <div class="flex items-center gap-2 justify-center">
-                      <span class="w-3 h-3 bg-amber-500 rounded-full"></span>
-                      <span>Thanksgiving: 10%</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
+            <div class="px-6 py-4 h-64">
+            <canvas id="attendanceByTypeChart"></canvas>
             </div>
           </div>
 
@@ -302,30 +216,170 @@
             <div class="px-6 py-4 border-b">
               <h3 class="text-lg font-semibold">Member Status</h3>
             </div>
-            <div class="px-6 py-4">
-              <div class="h-64 flex items-center justify-center bg-gray-50 rounded">
-                <div class="text-center">
-                  <p class="text-gray-500 mb-4">Pie chart placeholder</p>
-                  <div class="space-y-2 text-sm">
-                    <div class="flex items-center gap-2 justify-center">
-                      <span class="w-3 h-3 bg-green-500 rounded-full"></span>
-                      <span>Members Attended: 38</span>
-                    </div>
-                    <div class="flex items-center gap-2 justify-center">
-                      <span class="w-3 h-3 bg-amber-500 rounded-full"></span>
-                      <span>Members Not Attended: 7</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
+            <div class="px-6 py-4 h-64">
+            <canvas id="memberStatusChart"></canvas>
             </div>
           </div>
         </div>
       </div>
     </div>
   </div>
-</body>
-<script>
-    
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+  <script>
+function showToast(message, type = 'success') {
+    Toastify({
+        text: message,
+        duration: 3000,
+        gravity: "top",
+        position: "right",
+        close: true,
+        style: {
+            background: type === 'error' ? "#7f1d1d" : "#030213",
+            color: "#F2F8FF",
+            borderRadius: "8px",
+            padding: "12px 16px",
+            fontFamily: "Nunito"
+        }
+    }).showToast();
+}
 </script>
+  <script>
+    const attendanceByEventLabels = @json($attendanceByEvent->pluck('label'));
+    const attendanceByEventData = @json($attendanceByEvent->pluck('count'));
+
+    const attendanceByTypeLabels = @json($attendanceByTypeQuery->pluck('type_name'));
+    const attendanceByTypeData = @json($attendanceByTypeQuery->pluck('total'));
+
+    const memberStatusLabels = ['Members Attended', 'Members Not Attended'];
+    const memberStatusData = [{{ $memberStatus['attended'] }}, {{ $memberStatus['not_attended'] }}];
+
+    new Chart(document.getElementById('attendanceByEventChart'), {
+        type: 'bar',
+        data: {
+            labels: attendanceByEventLabels,
+            datasets: [{
+                label: 'Attendance',
+                data: attendanceByEventData
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false
+        }
+    });
+
+    new Chart(document.getElementById('attendanceByTypeChart'), {
+        type: 'pie',
+        data: {
+            labels: attendanceByTypeLabels,
+            datasets: [{
+                data: attendanceByTypeData
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false
+        }
+    });
+
+    new Chart(document.getElementById('memberStatusChart'), {
+        type: 'pie',
+        data: {
+            labels: memberStatusLabels,
+            datasets: [{
+                data: memberStatusData
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false
+        }
+    });
+</script>
+<div id="confirmModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-[9999]">
+    <div class="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
+
+        <h3 id="confirmTitle" class="text-xl font-semibold text-gray-900 mb-3">
+            Confirm Action
+        </h3>
+
+        <p id="confirmMessage" class="text-sm text-gray-600 mb-6">
+            Are you sure?
+        </p>
+
+        <div class="flex justify-end gap-3">
+
+            <!-- Cancel -->
+            <button type="button" onclick="closeConfirmModal()"
+                class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
+                Cancel
+            </button>
+
+            <!-- Confirm (UPDATED COLOR) -->
+            <button type="button" id="confirmButton"
+                class="px-4 py-2 rounded-md text-sm font-medium bg-[#030213] text-[#F2F8FF] hover:bg-[#0a0920] transition">
+                Confirm
+            </button>
+
+        </div>
+    </div>
+</div>
+<script>
+  let selectedForm = null;
+
+function confirmForm(form, title, message) {
+    selectedForm = form;
+
+    document.getElementById('confirmTitle').innerText = title;
+    document.getElementById('confirmMessage').innerText = message;
+    document.getElementById('confirmModal').classList.remove('hidden');
+
+    return false;
+}
+function closeConfirmModal() {
+    selectedForm = null;
+    document.getElementById('confirmModal').classList.add('hidden');
+}
+function dangerconfirmForm(form, title, message) {
+    selectedForm = form;
+
+    document.getElementById('dangerTitle').innerText = title;
+    document.getElementById('dangerMessage').innerText = message;
+    document.getElementById('dangerConfirmModal').classList.remove('hidden');
+    document.getElementById('dangerConfirmButton').addEventListener('click', function () {
+    if (selectedForm) {
+        selectedForm.submit();
+    }
+});
+    
+
+    return false;
+}
+
+function closeDangerModal() {
+    selectedForm = null;
+    document.getElementById('dangerConfirmModal').classList.add('hidden');
+
+
+    return false;
+}
+  
+</script>
+@if(session('success'))
+<script>
+    showToast("{{ session('success') }}", "success");
+</script>
+@endif
+
+@if(session('error'))
+<script>
+    showToast("{{ session('error') }}", "error");
+</script>
+@endif
+</script>
+
+</body>
+
 </html>

@@ -43,14 +43,12 @@ class MemberController extends Controller
             'birth_date' => $validatedData['birth_date'],
             'email' => $validatedData['email'],
             'phone_number' => $validatedData['phone_number'],
-        ]);
-
-        Address::create([
             'street' => $validatedData['street'] ?? null,
             'city' => $validatedData['city'] ?? null,
             'province' => $validatedData['province'] ?? null,
-            'member_id' => $member->member_id,
         ]);
+
+       
 
         if (!empty($validatedData['ministry_id'])) {
             $member->ministries()->attach($validatedData['ministry_id']);
@@ -99,16 +97,12 @@ class MemberController extends Controller
             'birth_date' => $validatedData['birth_date'],
             'email' => $validatedData['email'],
             'phone_number' => $validatedData['phone_number'],
+            'street' => $validatedData['street'] ?? null,
+            'city' => $validatedData['city'] ?? null,
+            'province' => $validatedData['province'] ?? null,
         ]);
 
-        Address::updateOrCreate(
-            ['member_id' => $member->member_id],
-            [
-                'street' => $validatedData['street'] ?? null,
-                'city' => $validatedData['city'] ?? null,
-                'province' => $validatedData['province'] ?? null,
-            ]
-        );
+    
 
         if (!empty($validatedData['ministry_id'])) {
             $member->ministries()->sync([$validatedData['ministry_id']]);
@@ -119,7 +113,7 @@ class MemberController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Member updated successfully.',
-            'data' => $member->load(['address', 'ministries']),
+            'data' => $member->load(['ministries']),
         ]);
     }
 
@@ -128,7 +122,6 @@ class MemberController extends Controller
         $member = Members::findOrFail($id);
 
         $member->ministries()->detach();
-        Address::where('member_id', $member->member_id)->delete();
         $member->delete();
 
         return response()->json([

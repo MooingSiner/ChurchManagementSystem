@@ -58,14 +58,11 @@ class MemberSeeder extends Seeder
                 'birth_date' => $data['birth_date'],
                 'email' => $data['email'],
                 'phone_number' => $data['phone_number'],
-            ]);
-
-            Address::create([
                 'street' => $data['street'],
                 'city' => $data['city'],
                 'province' => $data['province'],
-                'member_id' => $member->member_id,
             ]);
+
         }
     }
 }

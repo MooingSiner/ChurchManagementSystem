@@ -15,6 +15,9 @@ return new class extends Migration
         $table->id('members_ministry_id');
         $table->unsignedBigInteger('member_id');
         $table->unsignedBigInteger('ministry_id');
+        $table->string('role_in_ministry')->nullable();
+        $table->date('date_joined')->nullable();
+
 
         $table->foreign('member_id')
               ->references('member_id')
