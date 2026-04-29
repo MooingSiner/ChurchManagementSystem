@@ -31,6 +31,8 @@ Route::middleware('auth')->group(function () {
 
     // Attendance Routes
     Route::post('/attendance/sessions', [AttendanceController::class, 'storeSession'])->name('attendance.sessions.store');
+    Route::put('/attendance/sessions/{id}', [AttendanceController::class, 'updateSession'])->name('attendance.sessions.update');
+    Route::delete('/attendance/sessions/{id}', [AttendanceController::class, 'destroySession'])->name('attendance.sessions.destroy');
     Route::post('/attendance/manual', [AttendanceController::class, 'addManual'])->name('attendance.manual');
     Route::put('/attendance/{id}/approve', [AttendanceController::class, 'approve'])->name('attendance.approve');
     Route::delete('/attendance/{id}/reject', [AttendanceController::class, 'reject'])->name('attendance.reject');
@@ -38,12 +40,16 @@ Route::middleware('auth')->group(function () {
 
     Route::middleware('role:super_admin')->group(function () {
         Route::get('/report', [ReportController::class, 'report'])->name('report');
+    });
 
-        // Member Routes
+    Route::middleware('role:super_admin,admin')->group(function () {
         Route::get('/members', [MemberController::class, 'index'])->name('members.index');
+        Route::get('/members/{id}', [MemberController::class, 'show'])->name('members.show');
+    });
+
+    Route::middleware('role:super_admin')->group(function () {
         Route::get('/members/create', [MemberController::class, 'create'])->name('members.create');
         Route::post('/members', [MemberController::class, 'store'])->name('members.store');
-        Route::get('/members/{id}', [MemberController::class, 'show'])->name('members.show');
         Route::get('/members/{id}/edit', [MemberController::class, 'edit'])->name('members.edit');
         Route::put('/members/{id}', [MemberController::class, 'update'])->name('members.update');
         Route::delete('/members/{id}', [MemberController::class, 'destroy'])->name('members.destroy');

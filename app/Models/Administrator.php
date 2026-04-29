@@ -4,7 +4,7 @@ namespace App\Models;
 
 use Illuminate\Foundation\Auth\User as Authenticatable;
 
-class Admin extends Authenticatable
+class Administrator extends Authenticatable
 {
     protected $table = 'admins';
     protected $primaryKey = 'admin_id';
@@ -33,7 +33,6 @@ class Admin extends Authenticatable
             default => 'Administrator',
         };
     }
-
 
     public function events()
     {

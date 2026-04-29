@@ -2,7 +2,7 @@
 
 namespace Database\Seeders;
 
-use App\Models\Admin;
+use App\Models\Administrator;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 
@@ -10,7 +10,7 @@ class RegularAdminSeeder extends Seeder
 {
     public function run(): void
     {
-        Admin::updateOrCreate(
+        Administrator::updateOrCreate(
             ['username' => 'admin'],
             [
                 'username' => 'admin',

@@ -25,7 +25,7 @@ class AttendanceSession extends Model
 
     public function admin()
     {
-        return $this->belongsTo(Admin::class, 'admin_id', 'admin_id');
+        return $this->belongsTo(Administrator::class, 'admin_id', 'admin_id');
     }
 
     public function attendances()

@@ -3,50 +3,96 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
-use App\Models\Event;
 use Illuminate\Support\Facades\DB;
 
 class EventSeeder extends Seeder
 {
     public function run(): void
     {
-        Event::insert([
+        $now = now();
+
+        DB::table('events')->upsert([
             [
+                'event_id' => 1,
                 'event_name' => 'Sunday Worship Service',
-                'start_date' => '2026-04-20',
-                'end_date' => '2026-04-20',
-                'start_time' => '10:00:00',
-                'end_time' => '12:00:00',
-                'description' => 'Weekly worship service.',
+                'start_date' => '2026-05-05',
+                'end_date' => '2026-05-05',
+                'start_time' => '08:00:00',
+                'end_time' => '10:00:00',
+                'description' => 'Weekly worship service',
+                'status' => 'upcoming',
                 'type_id' => 1,
                 'admin_id' => 1,
-                'created_at' => now(),
-                'updated_at' => now(),
+                'created_at' => $now,
+                'updated_at' => $now,
             ],
             [
-                'event_name' => 'Wednesday Prayer Meeting',
-                'start_date' => '2026-04-23',
-                'end_date' => '2026-04-23',
-                'start_time' => '19:00:00',
-                'end_time' => '21:00:00',
-                'description' => 'Mid-week prayer gathering.',
+                'event_id' => 2,
+                'event_name' => 'Prayer Meeting',
+                'start_date' => '2026-05-07',
+                'end_date' => '2026-05-07',
+                'start_time' => '18:00:00',
+                'end_time' => '19:30:00',
+                'description' => 'Evening prayer meeting',
+                'status' => 'upcoming',
                 'type_id' => 2,
                 'admin_id' => 1,
-                'created_at' => now(),
-                'updated_at' => now(),
+                'created_at' => $now,
+                'updated_at' => $now,
             ],
             [
+                'event_id' => 3,
                 'event_name' => 'Youth Fellowship',
-                'start_date' => '2026-04-25',
-                'end_date' => '2026-04-25',
-                'start_time' => '15:00:00',
+                'start_date' => '2026-05-10',
+                'end_date' => '2026-05-10',
+                'start_time' => '14:00:00',
                 'end_time' => '17:00:00',
-                'description' => 'Youth bonding and activities.',
+                'description' => 'Youth gathering activity',
+                'status' => 'upcoming',
                 'type_id' => 3,
-                'admin_id' => 1,
-                'created_at' => now(),
-                'updated_at' => now(),
+                'admin_id' => 2,
+                'created_at' => $now,
+                'updated_at' => $now,
             ],
+            [
+                'event_id' => 4,
+                'event_name' => 'Bible Study Session',
+                'start_date' => '2026-05-12',
+                'end_date' => '2026-05-12',
+                'start_time' => '17:00:00',
+                'end_time' => '18:30:00',
+                'description' => 'Bible sharing and discussion',
+                'status' => 'upcoming',
+                'type_id' => 5,
+                'admin_id' => 1,
+                'created_at' => $now,
+                'updated_at' => $now,
+            ],
+            [
+                'event_id' => 5,
+                'event_name' => 'Community Outreach',
+                'start_date' => '2026-05-15',
+                'end_date' => '2026-05-15',
+                'start_time' => '09:00:00',
+                'end_time' => '12:00:00',
+                'description' => 'Barangay outreach program',
+                'status' => 'upcoming',
+                'type_id' => 6,
+                'admin_id' => 2,
+                'created_at' => $now,
+                'updated_at' => $now,
+            ],
+        ], ['event_id'], [
+            'event_name',
+            'start_date',
+            'end_date',
+            'start_time',
+            'end_time',
+            'description',
+            'status',
+            'type_id',
+            'admin_id',
+            'updated_at',
         ]);
     }
 }

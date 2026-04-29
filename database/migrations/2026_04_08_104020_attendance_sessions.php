@@ -17,7 +17,7 @@ return new class extends Migration
             $table->unsignedBigInteger('admin_id')->nullable();
 
             $table->string('attendance_name');
-            $table->date('attendance_date')->nullable();
+            $table->date('attendance_date');
             $table->time('time_in_start')->nullable();
             $table->time('time_out_end')->nullable();
 

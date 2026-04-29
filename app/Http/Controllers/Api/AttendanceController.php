@@ -10,9 +10,25 @@ use App\Models\Members;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Carbon\Carbon;
 
 class AttendanceController extends Controller
 {
+    protected function sessionIsOpenForMarking(AttendanceSession $session): bool
+    {
+        $openingDateTime = Carbon::parse(
+            trim(($session->attendance_date ?? $session->event?->start_date ?? now()->toDateString()) . ' ' . ($session->time_in_start ?? $session->event?->start_time ?? '00:00')),
+            'Asia/Manila'
+        );
+        $closingDateTime = Carbon::parse(
+            trim(($session->attendance_date ?? $session->event?->start_date ?? now()->toDateString()) . ' ' . ($session->time_out_end ?? $session->event?->end_time ?? '23:59')),
+            'Asia/Manila'
+        );
+        $now = Carbon::now('Asia/Manila');
+
+        return $now->between($openingDateTime, $closingDateTime);
+    }
+
     public function index()
     {
         $attendances = Attendance::with(['member', 'event', 'admin'])
@@ -33,10 +49,21 @@ class AttendanceController extends Controller
             'status' => 'nullable|string',
         ]);
 
+        $member = Members::where('member_id', $validated['member_id'])
+            ->where('is_archived', false)
+            ->first();
+
+        if (! $member) {
+            return response()->json([
+                'success' => false,
+                'error' => 'Member is not active.',
+            ], 422);
+        }
+
         $attendance = Attendance::updateOrCreate(
             [
                 'event_id' => $validated['event_id'],
-                'member_id' => $validated['member_id'],
+                'member_id' => $member->member_id,
             ],
             [
                 'admin_id' => Auth::id(),
@@ -87,12 +114,19 @@ class AttendanceController extends Controller
             $attendanceSessionQuery->where('attendance_session_id', $validated['attendance_session_id']);
         }
 
-        $attendanceSession = $attendanceSessionQuery->latest('attendance_session_id')->first();
+        $attendanceSession = $attendanceSessionQuery->with('event')->latest('attendance_session_id')->first();
 
         if (! $attendanceSession) {
             return response()->json([
                 'success' => false,
                 'error' => 'No attendance session is available for this event yet.',
+            ], 422);
+        }
+
+        if (! $this->sessionIsOpenForMarking($attendanceSession)) {
+            return response()->json([
+                'success' => false,
+                'error' => 'Attendance for this session is unavailable right now. Please check the event attendance time window.',
             ], 422);
         }
 
@@ -161,7 +195,8 @@ class AttendanceController extends Controller
             $alreadyAddedMemberIds = Attendance::where('event_id', $selectedEventId)
                 ->pluck('member_id');
 
-            $availableMembers = Members::whereNotIn('member_id', $alreadyAddedMemberIds)
+            $availableMembers = Members::where('is_archived', false)
+                ->whereNotIn('member_id', $alreadyAddedMemberIds)
                 ->orderBy('member_fname')
                 ->get();
         }
@@ -189,10 +224,19 @@ class AttendanceController extends Controller
             'member_id' => 'required|exists:members,member_id',
         ]);
 
+        $member = Members::where('member_id', $validated['member_id'])
+            ->where('is_archived', false)
+            ->first();
+
+        if (! $member) {
+            return redirect()->route('attendance', ['event_id' => $validated['event_id']])
+                ->with('error', 'That member is no longer active. Choose another member or restore the record first.');
+        }
+
         Attendance::updateOrCreate(
             [
                 'event_id' => $validated['event_id'],
-                'member_id' => $validated['member_id'],
+                'member_id' => $member->member_id,
             ],
             [
                 'admin_id' => Auth::id(),

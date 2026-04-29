@@ -9,17 +9,41 @@ use App\Models\Attendance;
 use App\Models\AttendanceSession;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Database\QueryException;
+use Carbon\Carbon;
 use Exception;
 
 class HomeController extends Controller
 {
+    protected function sessionIsOpenForMarking(AttendanceSession $session): bool
+    {
+        $openingDateTime = Carbon::parse(
+            trim(($session->attendance_date ?? $session->event?->start_date ?? now()->toDateString()) . ' ' . ($session->time_in_start ?? $session->event?->start_time ?? '00:00')),
+            'Asia/Manila'
+        );
+        $closingDateTime = Carbon::parse(
+            trim(($session->attendance_date ?? $session->event?->start_date ?? now()->toDateString()) . ' ' . ($session->time_out_end ?? $session->event?->end_time ?? '23:59')),
+            'Asia/Manila'
+        );
+        $now = Carbon::now('Asia/Manila');
+
+        return $now->between($openingDateTime, $closingDateTime);
+    }
+
     public function home()
 {
+    $now = Carbon::now('Asia/Manila');
+
     $events = Event::with('type')
-        ->whereIn('status', ['upcoming', 'ongoing'])
         ->orderBy('start_date')
         ->orderBy('start_time')
         ->get();
+
+    $events = $events->filter(function ($event) use ($now) {
+        $startDateTime = Carbon::parse($event->start_date . ' ' . ($event->start_time ?? '00:00'), 'Asia/Manila');
+        $endDateTime = Carbon::parse($event->end_date . ' ' . ($event->end_time ?? '23:59'), 'Asia/Manila');
+
+        return $now->between($startDateTime, $endDateTime);
+    })->values();
 
     $members = Members::where('is_archived', false)
         ->orderBy('member_fname')
@@ -27,13 +51,22 @@ class HomeController extends Controller
 
     $eventIds = $events->pluck('event_id');
 
-    $attendanceSessionsByEvent = AttendanceSession::whereIn('event_id', $eventIds)
+    $allAttendanceSessionsByEvent = AttendanceSession::with('event')
+        ->whereIn('event_id', $eventIds)
         ->latest()
         ->get()
         ->groupBy('event_id');
 
+    $attendanceSessionsByEvent = $allAttendanceSessionsByEvent
+        ->map(function ($sessions) {
+            return $sessions
+                ->filter(fn ($session) => $this->sessionIsOpenForMarking($session))
+                ->values();
+        });
+
     $attendanceSessionIdsByEvent = $attendanceSessionsByEvent
-        ->map(fn ($sessions) => $sessions->first()->attendance_session_id);
+        ->map(fn ($sessions) => $sessions->first()?->attendance_session_id)
+        ->filter();
 
     $sessionIds = $attendanceSessionsByEvent
         ->pluck('attendance_session_id')
@@ -44,7 +77,14 @@ class HomeController extends Controller
         ->whereIn('attendance_session_id', $sessionIds)
         ->get();
 
-    return view('home', compact('events', 'members', 'attendanceMemberIds', 'attendanceSessionsByEvent', 'attendanceSessionIdsByEvent'));
+    return view('home', compact(
+        'events',
+        'members',
+        'attendanceMemberIds',
+        'attendanceSessionsByEvent',
+        'attendanceSessionIdsByEvent',
+        'allAttendanceSessionsByEvent'
+    ));
 }
     
     public function submitAttendance(Request $request)
@@ -74,6 +114,11 @@ class HomeController extends Controller
         if (!$attendanceSession) {
             return redirect()->route('home')
                 ->with('error', 'No attendance has been created for this event yet.');
+        }
+
+        if (! $this->sessionIsOpenForMarking($attendanceSession->loadMissing('event'))) {
+            return redirect()->route('home')
+                ->with('error', 'Attendance for this session is unavailable right now. Please check the event attendance time window.');
         }
 
         Attendance::create([

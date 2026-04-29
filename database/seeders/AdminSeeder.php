@@ -4,14 +4,14 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
-use App\Models\Admin;
+use App\Models\Administrator;
 use Illuminate\Support\Facades\Hash;
 
 class AdminSeeder extends Seeder
 {
     public function run()
     {
-        Admin::updateOrCreate(
+        Administrator::updateOrCreate(
             ['username' => 'superadmin'],
             [
                 'username' => 'superadmin',

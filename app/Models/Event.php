@@ -23,12 +23,12 @@ class Event extends Model
 
     public function type()
     {
-        return $this->belongsTo(Type::class, 'type_id', 'type_id');
+        return $this->belongsTo(EventType::class, 'type_id', 'type_id');
     }
 
     public function admin()
     {
-        return $this->belongsTo(Admin::class, 'admin_id', 'admin_id');
+        return $this->belongsTo(Administrator::class, 'admin_id', 'admin_id');
     }
 
     public function attendances()

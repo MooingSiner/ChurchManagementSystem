@@ -3,11 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Models\Event;
-use App\Models\Type;
+use App\Models\EventType;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\ValidationException;
 use Carbon\Carbon;
 use Exception;
 
@@ -54,10 +55,27 @@ class EventController extends Controller
         return $validator->validate();
     }
 
+    protected function resolveEventStatus(array $validatedData): string
+    {
+        $now = Carbon::now('Asia/Manila');
+        $startDateTime = Carbon::parse($validatedData['start_date'] . ' ' . $validatedData['start_time'], 'Asia/Manila');
+        $endDateTime = Carbon::parse($validatedData['end_date'] . ' ' . $validatedData['end_time'], 'Asia/Manila');
+
+        if ($now->lt($startDateTime)) {
+            return 'upcoming';
+        }
+
+        if ($now->between($startDateTime, $endDateTime)) {
+            return 'ongoing';
+        }
+
+        return 'finished';
+    }
+
     public function event()
     {
         $events = Event::with(['type', 'admin'])->latest()->get();
-        $types = Type::all();
+        $types = EventType::all();
 
         return view('events', compact('events', 'types'));
     }
@@ -80,13 +98,13 @@ class EventController extends Controller
     });
 
     $events = Event::with(['type', 'admin'])->latest()->get();
-    $types = Type::all();
+    $types = EventType::all();
 
     return view('events', compact('events', 'types'));
 }
     public function create()
     {
-        $types = Type::all();
+        $types = EventType::all();
         return view('events.create', compact('types'));
     }
 
@@ -94,18 +112,6 @@ class EventController extends Controller
 {
     try {
         $validatedData = $this->validateEvent($request);
-
-        $now = Carbon::now('Asia/Manila');
-        $startDateTime = Carbon::parse($validatedData['start_date'] . ' ' . $validatedData['start_time'], 'Asia/Manila');
-        $endDateTime = Carbon::parse($validatedData['end_date'] . ' ' . $validatedData['end_time'], 'Asia/Manila');
-
-        if ($now->lt($startDateTime)) {
-            $status = 'upcoming';
-        } elseif ($now->between($startDateTime, $endDateTime)) {
-            $status = 'ongoing';
-        } else {
-            $status = 'finished';
-        }
 
         Event::create([
             'event_name' => $validatedData['event_name'],
@@ -116,11 +122,16 @@ class EventController extends Controller
             'end_time' => $validatedData['end_time'],
             'description' => $validatedData['description'] ?? null,
             'admin_id' => Auth::user()->admin_id,
-            'status' => $status,
+            'status' => $this->resolveEventStatus($validatedData),
         ]);
 
         return redirect()->back()->with('success', 'Event created successfully');
 
+    } catch (ValidationException $e) {
+        return redirect()->back()
+            ->withErrors($e->errors())
+            ->withInput()
+            ->with('error', 'Please fix the highlighted event details and try again.');
     } catch (Exception $e) {
         return redirect()->back()
             ->withInput()
@@ -137,7 +148,7 @@ class EventController extends Controller
     public function edit($id)
     {
         $event = Event::findOrFail($id);
-        $types = Type::all();
+        $types = EventType::all();
 
         return view('events.edit', compact('event', 'types'));
     }
@@ -157,9 +168,15 @@ class EventController extends Controller
             'start_time' => $validatedData['start_time'],
             'end_time' => $validatedData['end_time'],
             'description' => $validatedData['description'] ?? null,
+            'status' => $this->resolveEventStatus($validatedData),
         ]);
 
         return redirect()->back()->with('success', 'Event Updated successfully');
+        } catch (ValidationException $e) {
+            return redirect()->back()
+                ->withErrors($e->errors())
+                ->withInput()
+                ->with('error', 'Please fix the highlighted event details and try again.');
         }catch(Exception $e) {
             return redirect()->back()
                 ->withInput()
@@ -186,11 +203,23 @@ class EventController extends Controller
     try{
     $event = Event::findOrFail($id);
 
+    $now = Carbon::now('Asia/Manila');
+    $startDateTime = Carbon::parse($event->start_date . ' ' . $event->start_time, 'Asia/Manila');
+    $endDateTime = Carbon::parse($event->end_date . ' ' . $event->end_time, 'Asia/Manila');
+
+    if ($event->status === 'finished' || $now->gte($endDateTime)) {
+        return redirect()->back()->with('error', 'This event is already finished.');
+    }
+
+    if ($now->lt($startDateTime)) {
+        return redirect()->back()->with('error', 'This event has not started yet. Wait until the start time before marking it as completed.');
+    }
+
     $event->update([
         'status' => 'finished'
     ]);
 
-    return redirect()->back()->with('success', 'Event marked as completed');
+    return redirect()->back()->with('success', 'Event marked as ended');
 } catch(Exception $e) {
     return redirect()->back()
         ->withInput()

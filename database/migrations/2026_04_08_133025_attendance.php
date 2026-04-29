@@ -28,25 +28,17 @@ return new class extends Migration
 
             $table->timestamps();
 
-            $table->foreign('attendance_session_id')
-                  ->references('attendance_session_id')
-                  ->on('attendance_sessions')
-                  ->onDelete('cascade');
+            $table->foreign('attendance_session_id')->references('attendance_session_id')
+                  ->on('attendance_sessions')->onDelete('cascade');
 
-            $table->foreign('member_id')
-                  ->references('member_id')
-                  ->on('members')
-                  ->onDelete('cascade');
+            $table->foreign('member_id')->references('member_id')
+                  ->on('members')->onDelete('cascade');
 
-            $table->foreign('event_id')
-                  ->references('event_id')
-                  ->on('events')
-                  ->onDelete('cascade');
+            $table->foreign('event_id')->references('event_id')
+                  ->on('events')->onDelete('cascade');
 
-            $table->foreign('admin_id')
-                  ->references('admin_id')
-                  ->on('admins')
-                  ->onDelete('set null');
+            $table->foreign('admin_id')->references('admin_id')
+                  ->on('admins')->onDelete('set null');
 
             $table->unique(['member_id', 'attendance_session_id']);
         });

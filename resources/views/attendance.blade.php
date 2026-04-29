@@ -87,14 +87,12 @@
             </svg>
             Dashboard
           </a>
-          @if(Auth::user()->role === 'super_admin')
-            <a href="{{ route('members.index') }}" class="inline-flex items-center gap-2 border-b-2 border-transparent py-4 px-3 text-sm font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300 duration-200">
-              <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
-              </svg>
-              Members
-            </a>
-          @endif
+          <a href="{{ route('members.index') }}" class="inline-flex items-center gap-2 border-b-2 border-transparent py-4 px-3 text-sm font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300 duration-200">
+            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+            </svg>
+            Members
+          </a>
           <a href="{{ route('events.index') }}" class="inline-flex items-center gap-2 border-b-2 border-transparent py-4 px-3 text-sm font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300 duration-200">
             <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
@@ -133,7 +131,7 @@
               <p class="text-gray-600 mt-2">
                 {{ $selectedEvent->event_name }}
                 <span class="mx-1">&bull;</span>
-                {{ \Carbon\Carbon::parse($selectedSession->attendance_date ?? $selectedEvent->start_date)->format('l, F d, Y') }}
+                {{ \Carbon\Carbon::parse($selectedSession->attendance_date)->format('l, F d, Y') }}
                 <span class="mx-1">&bull;</span>
                 Created: {{ optional($selectedSession->created_at)->format('m/d/Y, g:i:s A') ?? 'Not available' }}
               </p>
@@ -218,11 +216,19 @@
 
           <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
             @foreach($attendanceSessions as $session)
+            @php
+              $sessionStartDateTime = \Carbon\Carbon::parse(trim($session->attendance_date . ' ' . ($session->time_in_start ?? $session->event->start_time ?? '00:00')), 'Asia/Manila');
+              $sessionEndDateTime = \Carbon\Carbon::parse(trim($session->attendance_date . ' ' . ($session->time_out_end ?? $session->event->end_time ?? '23:59')), 'Asia/Manila');
+              $now = \Carbon\Carbon::now('Asia/Manila');
+              $sessionState = $now->lt($sessionStartDateTime) ? 'upcoming' : ($now->gt($sessionEndDateTime) ? 'closed' : 'open');
+              $sessionAttendanceCount = $session->approved_attendance_count + $session->pending_attendance_count;
+              $sessionOpeningLabel = 'Attendance Opens ' . $sessionStartDateTime->format('M d, Y \\a\\t g:i A');
+            @endphp
             <div class="attendance-session-card bg-white rounded-lg shadow border overflow-hidden"
                  data-search="{{ strtolower($session->attendance_name . ' ' . ($session->event->event_name ?? '') . ' ' . ($session->event->type->type_name ?? '') . ' ' . ($session->attendance_date ?? '') . ' ' . ($session->created_at ?? '')) }}"
                  data-event="{{ strtolower($session->event->event_name ?? '') }}"
                  data-type="{{ strtolower($session->event->type->type_name ?? '') }}"
-                 data-date="{{ $session->attendance_date ?? $session->event->start_date }}">
+                 data-date="{{ $session->attendance_date }}">
               <div class="px-6 py-5 flex items-start justify-between gap-4">
                 <div>
                   <h3 class="text-xl font-semibold text-gray-900">{{ $session->attendance_name }}</h3>
@@ -231,11 +237,49 @@
                   </span>
                 </div>
 
-                @if($session->pending_attendance_count > 0)
-                  <span class="inline-flex min-w-[1.5rem] items-center justify-center rounded-full bg-amber-100 px-2 py-1 text-xs font-semibold leading-none text-amber-700">
-                    {{ $session->pending_attendance_count }}
-                  </span>
-                @endif
+                <div class="flex items-start gap-2">
+                  @if($session->pending_attendance_count > 0)
+                    <span class="inline-flex min-w-[1.5rem] items-center justify-center rounded-full bg-amber-100 px-2 py-1 text-xs font-semibold leading-none text-amber-700">
+                      {{ $session->pending_attendance_count }}
+                    </span>
+                  @endif
+
+                  <button
+                    type="button"
+                    onclick="openEditAttendanceSessionModal(
+                      '{{ $session->attendance_session_id }}',
+                      @js($session->attendance_name),
+                      @js($session->event->event_name ?? 'No event'),
+                      '{{ $session->attendance_date }}',
+                      '{{ $session->time_in_start ? \Carbon\Carbon::parse($session->time_in_start)->format('H:i') : '' }}',
+                      '{{ $session->time_out_end ? \Carbon\Carbon::parse($session->time_out_end)->format('H:i') : '' }}'
+                    )"
+                    class="h-8 w-8 p-0 text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded"
+                    title="Edit attendance session">
+                    <svg class="h-4 w-4 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                    </svg>
+                  </button>
+
+                  @if($sessionAttendanceCount === 0)
+                    <form action="{{ route('attendance.sessions.destroy', $session->attendance_session_id) }}" method="POST"
+      onsubmit="return dangerconfirmForm(this, 'Confirm Delete', 'Delete this attendance session?')">
+                      @csrf
+                      @method('DELETE')
+                      <button type="submit" class="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50 rounded" title="Delete attendance session">
+                        <svg class="h-4 w-4 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                        </svg>
+                      </button>
+                    </form>
+                  @else
+                    <button type="button" disabled class="h-8 w-8 p-0 text-gray-300 rounded cursor-not-allowed" title="Remove attendance records first before deleting this session">
+                      <svg class="h-4 w-4 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                      </svg>
+                    </button>
+                  @endif
+                </div>
               </div>
 
               <div class="px-6 pb-6 space-y-3">
@@ -249,7 +293,7 @@
                   <svg class="h-4 w-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
                   </svg>
-                  <span>{{ \Carbon\Carbon::parse($session->attendance_date ?? $session->event->start_date)->format('l, F d, Y') }}</span>
+                  <span>{{ \Carbon\Carbon::parse($session->attendance_date)->format('l, F d, Y') }}</span>
                 </div>
                 <div class="flex items-center gap-2 text-sm text-gray-600">
                   <svg class="h-4 w-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -274,12 +318,28 @@
                   <span>{{ $session->approved_attendance_count }} Members</span>
                 </div>
 
-                <a href="{{ route('attendance', ['attendance_session_id' => $session->attendance_session_id, 'view' => 'mark']) }}" class="w-full inline-flex items-center justify-center gap-2 px-4 py-3 text-sm font-semibold text-[#F2F8FF] bg-[#030213] rounded-md hover:bg-[#0a0920] transition-colors duration-200">
-                  <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path>
-                  </svg>
-                  Mark Attendance
-                </a>
+                @if($sessionState === 'open')
+                  <a href="{{ route('attendance', ['attendance_session_id' => $session->attendance_session_id, 'view' => 'mark']) }}" class="w-full inline-flex items-center justify-center gap-2 px-4 py-3 text-sm font-semibold text-[#F2F8FF] bg-[#030213] rounded-md hover:bg-[#0a0920] transition-colors duration-200">
+                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path>
+                    </svg>
+                    Mark Attendance
+                  </a>
+                @elseif($sessionState === 'closed')
+                  <div class="w-full inline-flex items-center justify-center gap-2 px-4 py-3 text-sm font-semibold text-gray-600 bg-gray-100 rounded-md">
+                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                    Attendance Closed
+                  </div>
+                @else
+                  <div class="w-full inline-flex items-center justify-center gap-2 px-4 py-3 text-sm font-semibold text-yellow-700 bg-yellow-100 rounded-md">
+                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M5.07 19h13.86c1.54 0 2.5-1.67 1.73-3L13.73 4c-.77-1.33-2.69-1.33-3.46 0L3.34 16c-.77 1.33.19 3 1.73 3z"></path>
+                    </svg>
+                    {{ $sessionOpeningLabel }}
+                  </div>
+                @endif
               </div>
             </div>
             @endforeach
@@ -479,7 +539,7 @@
 
         <div>
           <label for="attendanceDate" class="block text-sm font-medium text-gray-700 mb-2">Attendance Date</label>
-          <input id="attendanceDate" type="date" name="attendance_date" value="{{ old('attendance_date') }}" class="w-full px-4 py-3 border border-gray-200 bg-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+          <input id="attendanceDate" type="date" name="attendance_date" value="{{ old('attendance_date') }}" required class="w-full px-4 py-3 border border-gray-200 bg-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
         </div>
 
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -502,6 +562,63 @@
         <div>
           <button type="submit" {{ $events->isEmpty() ? 'disabled' : '' }} class="w-full px-4 py-3 rounded-lg text-sm font-semibold text-[#F2F8FF] bg-[#030213] hover:bg-[#0a0920] disabled:cursor-not-allowed disabled:bg-gray-300 transition">
             Create Attendance
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="editAttendanceSessionModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-[9999]">
+    <div class="bg-white rounded-lg shadow-xl max-w-xl w-full">
+      <div class="px-6 pt-6">
+        <div class="flex items-start justify-between gap-4">
+          <div>
+            <h3 class="text-xl font-semibold text-gray-900">Edit Attendance Session</h3>
+            <p class="text-sm text-gray-600 mt-2">Update the session details without changing the event it belongs to.</p>
+          </div>
+          <button type="button" onclick="closeEditAttendanceSessionModal()" class="text-gray-500 hover:text-gray-800">
+            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <form id="editAttendanceSessionForm" method="POST" class="p-6 space-y-5">
+        @csrf
+        @method('PUT')
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Event</label>
+          <input id="editAttendanceSessionEvent" type="text" readonly class="w-full px-4 py-3 border border-gray-200 bg-gray-100 rounded-lg text-gray-600">
+        </div>
+
+        <div>
+          <label for="editAttendanceSessionDate" class="block text-sm font-medium text-gray-700 mb-2">Attendance Date</label>
+          <input id="editAttendanceSessionDate" type="date" name="attendance_date" required class="w-full px-4 py-3 border border-gray-200 bg-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+        </div>
+
+        <div>
+          <label for="editAttendanceSessionName" class="block text-sm font-medium text-gray-700 mb-2">Attendance Name</label>
+          <input id="editAttendanceSessionName" type="text" name="attendance_name" required class="w-full px-4 py-3 border border-gray-200 bg-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label for="editTimeInStart" class="block text-sm font-medium text-gray-700 mb-2">Time In</label>
+            <input id="editTimeInStart" type="time" name="time_in_start" class="w-full px-4 py-3 border border-gray-200 bg-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+          </div>
+          <div>
+            <label for="editTimeOutEnd" class="block text-sm font-medium text-gray-700 mb-2">Time Out</label>
+            <input id="editTimeOutEnd" type="time" name="time_out_end" class="w-full px-4 py-3 border border-gray-200 bg-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+          </div>
+        </div>
+
+        <div class="flex gap-3 pt-2">
+          <button type="button" onclick="closeEditAttendanceSessionModal()" class="flex-1 px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
+            Cancel
+          </button>
+          <button type="submit" class="flex-1 px-4 py-2 rounded-md text-sm font-medium text-[#F2F8FF] bg-[#030213] hover:bg-[#0a0920]">
+            Save Changes
           </button>
         </div>
       </form>
@@ -546,6 +663,23 @@ function showToast(message, type = 'success') {
 
     function closeCreateAttendanceModal() {
       document.getElementById('createAttendanceModal').classList.add('hidden');
+    }
+
+    function openEditAttendanceSessionModal(id, name, eventName, eventDate, timeInStart, timeOutEnd) {
+      const form = document.getElementById('editAttendanceSessionForm');
+      form.action = `/attendance/sessions/${id}`;
+
+      document.getElementById('editAttendanceSessionName').value = name ?? '';
+      document.getElementById('editAttendanceSessionEvent').value = eventName ?? '';
+      document.getElementById('editAttendanceSessionDate').value = eventDate ?? '';
+      document.getElementById('editTimeInStart').value = timeInStart ?? '';
+      document.getElementById('editTimeOutEnd').value = timeOutEnd ?? '';
+
+      document.getElementById('editAttendanceSessionModal').classList.remove('hidden');
+    }
+
+    function closeEditAttendanceSessionModal() {
+      document.getElementById('editAttendanceSessionModal').classList.add('hidden');
     }
 
     function selectAttendanceEvent(eventId) {

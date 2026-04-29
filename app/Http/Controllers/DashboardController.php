@@ -32,7 +32,9 @@ class DashboardController extends Controller
                 $query->where('status', 'Present');
             }
         ])
-        ->latest('attendance_date')
+        ->orderByDesc('attendance_sessions.attendance_date')
+        ->orderByDesc('attendance_sessions.created_at')
+        ->select('attendance_sessions.*')
         ->latest()
         ->take(5)
         ->get();

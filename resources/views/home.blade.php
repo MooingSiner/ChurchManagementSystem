@@ -130,7 +130,28 @@
           @endif
 
           <!-- Event Cards Hidden/Shown by JS -->
-          @foreach($events as $index => $event)
+            @foreach($events as $index => $event)
+            @php
+              $startDateTime = \Carbon\Carbon::parse($event->start_date . ' ' . $event->start_time, 'Asia/Manila');
+              $endDateTime = \Carbon\Carbon::parse($event->end_date . ' ' . $event->end_time, 'Asia/Manila');
+              $now = now('Asia/Manila');
+              $minutesUntilStart = $now->diffInMinutes($startDateTime, false);
+              $allEventSessions = $allAttendanceSessionsByEvent->get($event->event_id, collect());
+              $openEventSessions = $attendanceSessionsByEvent->get($event->event_id, collect());
+              $hasAnyAttendanceSessions = $allEventSessions->isNotEmpty();
+              $hasOpenAttendanceSessions = $openEventSessions->isNotEmpty();
+
+              if ($now->between($startDateTime, $endDateTime)) {
+                  $eventStatusLabel = 'Event has started';
+                  $eventStatusClasses = 'bg-emerald-50 text-emerald-700 border border-emerald-200';
+              } elseif ($minutesUntilStart >= 0 && $minutesUntilStart <= 60) {
+                  $eventStatusLabel = 'Event is starting soon';
+                  $eventStatusClasses = 'bg-amber-50 text-amber-700 border border-amber-200';
+              } else {
+                  $eventStatusLabel = 'Event starts at ' . $startDateTime->format('g:i A');
+                  $eventStatusClasses = 'bg-sky-50 text-sky-700 border border-sky-200';
+              }
+            @endphp
             <div id="event-card-{{ $event->event_id }}"
               class="event-card {{ $index !== 0 ? 'hidden' : '' }} border-2 border-blue-100 rounded-lg bg-white shadow overflow-hidden">
 
@@ -159,13 +180,36 @@
                   <div class="text-lg text-gray-700">
                     {{ \Carbon\Carbon::parse($event->start_time)->format('H:i') }}
                   </div>
+
+                  <div class="pt-1">
+                    <span class="inline-flex items-center rounded-full px-3 py-1 text-sm font-medium {{ $eventStatusClasses }}">
+                      {{ $eventStatusLabel }}
+                    </span>
+                  </div>
                 </div>
 
                 <div class="space-y-3">
+                  @if($hasOpenAttendanceSessions)
                   <button onclick="showScanner('{{ $event->event_id }}')"
                     class="w-full inline-flex items-center justify-center gap-2 px-4 py-3 rounded-md text-sm font-medium text-[#F2F8FF] bg-[#030213] hover:bg-[#0a0920]">
                     Scan ID Card
                   </button>
+                  @else
+                  <div class="rounded-lg border border-amber-200 bg-amber-50 px-4 py-4 text-left">
+                    <div class="text-sm font-semibold text-amber-900">
+                      {{ $hasAnyAttendanceSessions ? 'Attendance is not open yet' : 'Attendance has not been created yet' }}
+                    </div>
+                    <p class="mt-1 text-sm text-amber-800">
+                      {{ $hasAnyAttendanceSessions
+                          ? 'Please wait until the scheduled attendance session time before marking attendance for this event.'
+                          : 'Please wait for a church administrator or attendance coordinator to open attendance for this event.' }}
+                    </p>
+                  </div>
+                  <button type="button" disabled
+                    class="w-full inline-flex items-center justify-center gap-2 px-4 py-3 rounded-md text-sm font-medium text-slate-400 bg-slate-100 cursor-not-allowed">
+                    Scan ID Card Unavailable
+                  </button>
+                  @endif
 
                   <div class="relative">
                     <div class="absolute inset-0 flex items-center">
@@ -176,8 +220,14 @@
                     </div>
                   </div>
 
-                  <button onclick="showManualEntry('{{ $event->event_id }}')"
-                    class="w-full inline-flex items-center justify-center gap-2 px-4 py-3 border border-gray-300 rounded-md text-base font-medium text-gray-700 bg-white hover:bg-gray-50">
+                  <button
+                    @if($hasOpenAttendanceSessions)
+                      onclick="showManualEntry('{{ $event->event_id }}')"
+                      class="w-full inline-flex items-center justify-center gap-2 px-4 py-3 border border-gray-300 rounded-md text-base font-medium text-gray-700 bg-white hover:bg-gray-50"
+                    @else
+                      type="button" disabled
+                      class="w-full inline-flex items-center justify-center gap-2 px-4 py-3 border border-slate-200 rounded-md text-base font-medium text-slate-400 bg-slate-50 cursor-not-allowed"
+                    @endif>
                     Manual Entry
                   </button>
                 </div>
@@ -220,6 +270,11 @@
                   class="w-full px-4 py-2 border border-gray-300 rounded-md bg-gray-100">
                   <option value="">Choose session...</option>
                 </select>
+              </div>
+
+              <div id="manualSingleSessionContainer" class="hidden rounded-md border border-yellow-100 bg-yellow-50 px-4 py-3">
+                <div class="text-sm font-medium text-gray-700">Attendance Session</div>
+                <div id="manualSingleSessionLabel" class="mt-1 text-sm text-gray-600"></div>
               </div>
 
               <div>
@@ -270,6 +325,11 @@
             <select id="attendanceSessionSelector" onchange="updateSelectedSession()" class="w-full px-3 py-2 border border-gray-300 rounded-md bg-white">
               <option value="">Choose session...</option>
             </select>
+          </div>
+
+          <div id="attendanceSessionSingle" class="rounded-lg bg-yellow-50 border border-yellow-100 p-4 text-left hidden">
+            <div class="text-sm font-semibold text-gray-900">Attendance Session</div>
+            <div id="attendanceSessionSingleLabel" class="mt-1 text-sm text-gray-700"></div>
           </div>
 
           <div id="qrReader" class="min-h-[260px] overflow-hidden rounded-lg border border-gray-200 bg-gray-50"></div>
@@ -824,21 +884,25 @@ function populateAttendanceSessions(eventId) {
     const sessions = allAttendanceSessions[eventId];
     const container = document.getElementById('attendanceSessionContainer');
     const selector = document.getElementById('attendanceSessionSelector');
+    const singleContainer = document.getElementById('attendanceSessionSingle');
+    const singleLabel = document.getElementById('attendanceSessionSingleLabel');
     
     if (!sessions || sessions.length === 0) {
         container.classList.add('hidden');
+        singleContainer.classList.add('hidden');
         document.getElementById('scannerSessionId').value = '';
         return;
     }
     
     if (sessions.length === 1) {
-        // Only one session, auto-select it
         container.classList.add('hidden');
+        singleContainer.classList.remove('hidden');
+        singleLabel.textContent = sessions[0].attendance_name || `Session ${sessions[0].attendance_session_id}`;
         document.getElementById('scannerSessionId').value = sessions[0].attendance_session_id;
         return;
     }
     
-    // Multiple sessions, show selector
+    singleContainer.classList.add('hidden');
     selector.innerHTML = '<option value="">Choose session...</option>';
     
     sessions.forEach(session => {
@@ -863,21 +927,25 @@ function populateManualAttendanceSessions() {
     const sessions = allAttendanceSessions[eventId];
     const container = document.getElementById('manualSessionContainer');
     const selector = document.getElementById('manualSessionSelector');
+    const singleContainer = document.getElementById('manualSingleSessionContainer');
+    const singleLabel = document.getElementById('manualSingleSessionLabel');
     
     if (!sessions || sessions.length === 0) {
         container.classList.add('hidden');
+        singleContainer.classList.add('hidden');
         selector.value = '';
         return;
     }
     
     if (sessions.length === 1) {
-        // Only one session, auto-select it
         container.classList.add('hidden');
+        singleContainer.classList.remove('hidden');
+        singleLabel.textContent = sessions[0].attendance_name || `Session ${sessions[0].attendance_session_id}`;
         selector.value = sessions[0].attendance_session_id;
         return;
     }
     
-    // Multiple sessions, show selector
+    singleContainer.classList.add('hidden');
     selector.innerHTML = '<option value="">Choose session...</option>';
     
     sessions.forEach(session => {

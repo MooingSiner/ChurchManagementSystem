@@ -23,6 +23,8 @@ return new class extends Migration
         $table->string('province');
         $table->string('city');
         $table->string('street')->nullable();
+        $table->boolean('is_archived')->default(false);
+        $table->timestamp('archived_at')->nullable();
         $table->timestamps();
     });
 }

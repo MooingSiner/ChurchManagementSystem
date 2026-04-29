@@ -21,9 +21,8 @@ class DatabaseSeeder extends Seeder
         RegularAdminSeeder::class,
         MemberSeeder::class,
         EventSeeder::class,
-        
-        
-        
+        AttendanceSessionSeeder::class,
+        AttendanceSeeder::class,
     ]);
 }
 }

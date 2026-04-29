@@ -90,14 +90,12 @@
             </svg>
             Dashboard
           </a>
-          @if(Auth::user()->role === 'super_admin')
-            <a href="{{ route('members.index') }}" class="inline-flex items-center gap-2 border-b-2 border-transparent py-4 px-3 text-sm font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300 duration-200">
-              <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
-              </svg>
-              Members
-            </a>
-          @endif
+          <a href="{{ route('members.index') }}" class="inline-flex items-center gap-2 border-b-2 border-transparent py-4 px-3 text-sm font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300 duration-200">
+            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+            </svg>
+            Members
+          </a>
           <a href="{{ route('events.index') }}" class="inline-flex items-center gap-2 border-b-2 border-blue-600 py-4 px-3 text-sm font-medium text-blue-600 duration-200">
             <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
@@ -143,6 +141,16 @@
             Create Event
           </button>
         </div>
+
+        @if($errors->any())
+          <div class="bg-red-100 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
+            <ul class="list-disc list-inside text-sm space-y-1">
+              @foreach($errors->all() as $error)
+                <li>{{ $error }}</li>
+              @endforeach
+            </ul>
+          </div>
+        @endif
 
         <!-- Events Grid -->
         
@@ -248,8 +256,8 @@
                                     '{{ $event->type_id }}',
                                     '{{ $event->start_date }}',
                                     '{{ $event->end_date }}',
-                                    '{{ $event->start_time }}',
-                                    '{{ $event->end_time }}',
+                                    '{{ \Carbon\Carbon::parse($event->start_time)->format('H:i') }}',
+                                    '{{ \Carbon\Carbon::parse($event->end_time)->format('H:i') }}',
                                     `{{ $event->description }}`
                                 )"
                                 class="h-8 w-8 p-0 text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded">
@@ -300,23 +308,29 @@
                     <p class="text-sm text-gray-600 pt-2 border-t">
                         {{ $event->description ?? 'No description available.' }}
                     </p>
-                <div id="event-status-{{ $event->event_id }}">
-            @if($event->status !== 'finished')
+        <div id="event-status-{{ $event->event_id }}">
+            @if($event->status === 'finished')
+                <div class="pt-3 border-t">
+                    <span class="block w-full text-center px-4 py-2 text-sm font-medium text-white bg-gray-400 rounded-md">
+                        Event Finished
+                    </span>
+                </div>
+            @elseif($event->status === 'ongoing')
                 <div class="pt-3 border-t">
                     <form action="{{ route('events.finish', $event->event_id) }}" method="POST"
-      onsubmit="return confirmForm(this, 'Confirm Complete', 'Mark this event as finished?')">
+      onsubmit="return confirmForm(this, 'Confirm Event End', 'Are you sure you want to mark this event as ended?')">
                         @csrf
                         @method('PUT')
                         <button type="submit"
                             class="w-full px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700">
-                            Complete Event
+                            End Event
                         </button>
                     </form>
                 </div>
             @else
                 <div class="pt-3 border-t">
-                    <span class="block w-full text-center px-4 py-2 text-sm font-medium text-white bg-gray-400 rounded-md">
-                        Event Finished
+                    <span class="block w-full text-center px-4 py-2 text-sm font-medium text-yellow-700 bg-yellow-100 rounded-md">
+                        Upcoming Event
                     </span>
                 </div>
             @endif

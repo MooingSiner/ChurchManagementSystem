@@ -46,6 +46,7 @@
 </head>
 
 <body class="bg-gray-50 bg-gradient-to-br from-blue-50 via-white to-purple-50">
+  @php($canManageMembers = Auth::user()->role === 'super_admin')
   <div class="min-h-screen">
     <!-- Header with Navigation -->
     <div class="bg-white shadow-sm border-b">
@@ -133,14 +134,20 @@
         <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h2 class="text-3xl font-semibold text-gray-900">Members</h2>
-            <p class="text-gray-600 mt-2">Manage your church members</p>
+            <p class="text-gray-600 mt-2">{{ $canManageMembers ? 'Manage your church members' : 'Browse members and view their QR codes' }}</p>
           </div>
-          <button onclick="openAddMemberModal()" class="inline-flex w-full sm:w-auto items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-[#F2F8FF] bg-[#030213] rounded-md hover:bg-[#0a0920] transition-colors duration-200">
-            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"></path>
-            </svg>
-            Add Member
-          </button>
+          @if($canManageMembers)
+            <button onclick="openAddMemberModal()" class="inline-flex w-full sm:w-auto items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-[#F2F8FF] bg-[#030213] rounded-md hover:bg-[#0a0920] transition-colors duration-200">
+              <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"></path>
+              </svg>
+              Add Member
+            </button>
+          @else
+            <div class="inline-flex items-center rounded-md border border-blue-200 bg-blue-50 px-4 py-2 text-sm font-medium text-blue-700">
+              Read-only access
+            </div>
+          @endif
         </div>
       
 <!-- Member Toggle -->
@@ -196,10 +203,12 @@
                     No members yet. Add your first member to get started.
                 </p>
 
-                <button onclick="openAddMemberModal()"
-                    class="inline-flex w-full sm:w-auto items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-[#F2F8FF] bg-[#030213] rounded-md hover:bg-[#0a0920]">
-                    Add Member
-                </button>
+                @if($canManageMembers)
+                  <button onclick="openAddMemberModal()"
+                      class="inline-flex w-full sm:w-auto items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-[#F2F8FF] bg-[#030213] rounded-md hover:bg-[#0a0920]">
+                      Add Member
+                  </button>
+                @endif
             </div>
         </div>
     @else
@@ -231,39 +240,41 @@
                                     </svg>
                                 </button>
 
-                                <button 
-                                    onclick="openEditMemberModal(
-                                        '{{ $member->member_id }}',
-                                        '{{ $member->member_fname }}',
-                                        '{{ $member->member_mname }}',
-                                        '{{ $member->member_lname }}',
-                                        '{{ $member->gender }}',
-                                        '{{ $member->birth_date }}',
-                                        '{{ $member->email }}',
-                                        '{{ $member->phone_number }}',
-                                        '{{ $member->street }}',
-                                        '{{ $member->city }}',
-                                        '{{ $member->province }}',
-                                        '{{ $member->ministries->first()->ministry_id ?? '' }}'
-                                    )"
-                                    class="h-8 w-8 p-0 text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded">
-                                    <svg class="h-4 w-4 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
-                                    </svg>
-                                </button>
+                                @if($canManageMembers)
+                                  <button 
+                                      onclick="openEditMemberModal(
+                                          '{{ $member->member_id }}',
+                                          '{{ $member->member_fname }}',
+                                          '{{ $member->member_mname }}',
+                                          '{{ $member->member_lname }}',
+                                          '{{ $member->gender }}',
+                                          '{{ $member->birth_date }}',
+                                          '{{ $member->email }}',
+                                          '{{ $member->phone_number }}',
+                                          '{{ $member->street }}',
+                                          '{{ $member->city }}',
+                                          '{{ $member->province }}',
+                                          '{{ $member->ministries->first()->ministry_id ?? '' }}'
+                                      )"
+                                      class="h-8 w-8 p-0 text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded">
+                                      <svg class="h-4 w-4 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                              d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                                      </svg>
+                                  </button>
 
-                                <form action="{{ route('members.destroy', $member->member_id) }}" method="POST"
-      onsubmit="return dangerconfirmForm(this, 'Confirm Archive', 'Are you sure you want to archive this member?')">
-                                    @csrf
-                                    @method('DELETE')
+                                  <form action="{{ route('members.destroy', $member->member_id) }}" method="POST"
+        onsubmit="return dangerconfirmForm(this, 'Confirm Archive', 'Are you sure you want to archive this member?')">
+                                      @csrf
+                                      @method('DELETE')
 
-                                    <button type="submit" class="h-8 w-8 flex items-center justify-center text-gray-600 hover:text-gray-700 hover:bg-gray-50 rounded transition-colors">
-                                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"/>
-                                    </svg>
-                                </button>
-                                </form>
+                                      <button type="submit" class="h-8 w-8 flex items-center justify-center text-gray-600 hover:text-gray-700 hover:bg-gray-50 rounded transition-colors">
+                                      <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"/>
+                                      </svg>
+                                  </button>
+                                  </form>
+                                @endif
                             </div>
                         </div>
                     </div>
@@ -360,39 +371,41 @@
                               </svg>
                           </button>
 
-                            <button 
-                              onclick="openEditMemberModal(
-                                  '{{ $member->member_id }}',
-                                  '{{ $member->member_fname }}',
-                                  '{{ $member->member_mname }}',
-                                  '{{ $member->member_lname }}',
-                                  '{{ $member->gender }}',
-                                  '{{ $member->birth_date }}',
-                                  '{{ $member->email }}',
-                                  '{{ $member->phone_number }}',
-                                  '{{ $member->street }}',
-                                  '{{ $member->province }}',
-                                  '{{ $member->city }}',
-                                  '{{ $member->ministries->first()->ministry_id ?? '' }}'
-                              )"
-                              class="h-8 w-8 p-0 text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded">
-                              <svg class="h-4 w-4 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                      d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
-                              </svg>
-                          </button>
-                            <form action="{{ route('members.restore', $member->member_id) }}" method="POST"
-      onsubmit="return confirmForm(this, 'Confirm Restore', 'Are you sure you want to restore this member?')">
-                                @csrf
-                                @method('PUT')
+                            @if($canManageMembers)
+                              <button 
+                                onclick="openEditMemberModal(
+                                    '{{ $member->member_id }}',
+                                    '{{ $member->member_fname }}',
+                                    '{{ $member->member_mname }}',
+                                    '{{ $member->member_lname }}',
+                                    '{{ $member->gender }}',
+                                    '{{ $member->birth_date }}',
+                                    '{{ $member->email }}',
+                                    '{{ $member->phone_number }}',
+                                    '{{ $member->street }}',
+                                    '{{ $member->province }}',
+                                    '{{ $member->city }}',
+                                    '{{ $member->ministries->first()->ministry_id ?? '' }}'
+                                )"
+                                class="h-8 w-8 p-0 text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded">
+                                <svg class="h-4 w-4 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                                </svg>
+                            </button>
+                              <form action="{{ route('members.restore', $member->member_id) }}" method="POST"
+        onsubmit="return confirmForm(this, 'Confirm Restore', 'Are you sure you want to restore this member?')">
+                                  @csrf
+                                  @method('PUT')
 
-                                <button type="submit"
-                                    class="h-8 w-8 flex items-center justify-center text-green-600 hover:text-green-700 hover:bg-green-50 rounded transition-colors">
-                                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
-                                    </svg>
-                                </button>
-                            </form>
+                                  <button type="submit"
+                                      class="h-8 w-8 flex items-center justify-center text-green-600 hover:text-green-700 hover:bg-green-50 rounded transition-colors">
+                                      <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                                      </svg>
+                                  </button>
+                              </form>
+                            @endif
                         </div>
                     </div>
                   </div>

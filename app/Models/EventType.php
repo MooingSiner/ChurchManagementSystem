@@ -4,7 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class Type extends Model
+class EventType extends Model
 {
     protected $table = 'types';
     protected $primaryKey = 'type_id';

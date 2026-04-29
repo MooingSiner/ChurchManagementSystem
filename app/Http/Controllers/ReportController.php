@@ -56,11 +56,13 @@ class ReportController extends Controller
                     }
                 }
             ])
-            ->orderByDesc('attendance_date')
+            ->join('events', 'attendance_sessions.event_id', '=', 'events.event_id')
+            ->orderByDesc('attendance_sessions.attendance_date')
+            ->select('attendance_sessions.*')
             ->latest();
 
         if ($fromDate) {
-            $reportHistoryQuery->whereDate('attendance_date', '>=', $fromDate);
+            $reportHistoryQuery->whereDate('attendance_sessions.attendance_date', '>=', $fromDate);
         }
 
         $reportHistory = $reportHistoryQuery->get();
