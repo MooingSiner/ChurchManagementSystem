@@ -15,6 +15,10 @@ class Attendance extends Model
         'admin_id',
         'attended_at',
         'status',
+        'attendance_session_id',
+        'time_in',
+        'time_out',
+
     ];
 
     public function member()
@@ -25,6 +29,11 @@ class Attendance extends Model
     public function event()
     {
         return $this->belongsTo(Event::class, 'event_id', 'event_id');
+    }
+
+    public function attendanceSession()
+    {
+        return $this->belongsTo(AttendanceSession::class, 'attendance_session_id', 'attendance_session_id');
     }
 
     public function admin()

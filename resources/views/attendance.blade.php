@@ -19,6 +19,29 @@
       -ms-overflow-style: none;
       scrollbar-width: none;
     }
+
+    @keyframes pageFadeUp {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes cardFadeUp {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes modalPop {
+      from { opacity: 0; transform: translateY(8px) scale(0.98); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    @media (prefers-reduced-motion: no-preference) {
+      .min-h-screen > .max-w-7xl { animation: pageFadeUp 260ms ease-out both; }
+      .rounded-lg.shadow, .rounded-lg.shadow-sm { animation: cardFadeUp 240ms ease-out both; }
+      .fixed:not(.hidden) > .bg-white { animation: modalPop 180ms ease-out both; }
+      button, a.inline-flex { transition-property: transform, color, background-color, border-color, box-shadow, opacity; }
+      button:hover, a.inline-flex:hover { transform: translateY(-1px); }
+    }
   </style>
 </head>
 <body class="bg-gray-50 bg-gradient-to-br from-blue-50 via-white to-purple-50">
@@ -32,9 +55,12 @@
           </div>
 
           <div class="flex flex-wrap items-center gap-2 sm:gap-4">
-            <div class="flex items-center gap-2 text-gray-700 font-medium">
+            <div class="flex items-center gap-2 text-gray-700">
               <img src="{{ asset('images/icons/user-icon.png') }}" alt="User Icon" class="h-6 w-6">
-              {{ Auth::user()->username }}
+              <div class="leading-tight">
+                <div class="font-medium">{{ Auth::user()->username }}</div>
+                <div class="text-xs text-gray-500">{{ $currentRoleLabel }}</div>
+              </div>
             </div>
 
             <form action="{{ route('auth.logout') }}" method="POST" onsubmit = "return confirmForm(this, 'Confirm Logout', 'Are you sure you want to logout?')">
@@ -55,21 +81,81 @@
     <div class="bg-white border-b">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <nav class="flex gap-4 overflow-x-auto whitespace-nowrap scrollbar-hide">
-          <a href="{{ route('dashboard') }}" class="border-b-2 border-transparent py-4 px-1 text-sm font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300 duration-200">Dashboard</a>
-          <a href="{{ route('members.index') }}" class="border-b-2 border-transparent py-4 px-1 text-sm font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300 duration-200">Members</a>
-          <a href="{{ route('events.index') }}" class="border-b-2 border-transparent py-4 px-1 text-sm font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300 duration-200">Events</a>
-          <a href="{{ route('attendance') }}" class="border-b-2 border-blue-600 py-4 px-1 text-sm font-medium text-blue-600 duration-200">Attendance</a>
-          <a href="{{ route('report') }}" class="border-b-2 border-transparent py-4 px-1 text-sm font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300 duration-200">Reports</a>
-           
+          <a href="{{ route('dashboard') }}" class="inline-flex items-center gap-2 border-b-2 border-transparent py-4 px-3 text-sm font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300 duration-200">
+            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
+            </svg>
+            Dashboard
+          </a>
+          @if(Auth::user()->role === 'super_admin')
+            <a href="{{ route('members.index') }}" class="inline-flex items-center gap-2 border-b-2 border-transparent py-4 px-3 text-sm font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300 duration-200">
+              <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+              </svg>
+              Members
+            </a>
+          @endif
+          <a href="{{ route('events.index') }}" class="inline-flex items-center gap-2 border-b-2 border-transparent py-4 px-3 text-sm font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300 duration-200">
+            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+            </svg>
+            Events
+          </a>
+          <a href="{{ route('attendance') }}" class="inline-flex items-center gap-2 border-b-2 border-blue-600 py-4 px-3 text-sm font-medium text-blue-600 duration-200">
+            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path>
+            </svg>
+            Attendance
+            @if(($navigationBadges['attendance_pending'] ?? 0) > 0)
+              <span class="inline-flex min-w-[1.25rem] items-center justify-center rounded-full bg-amber-100 px-1.5 py-0.5 text-xs font-semibold leading-none text-amber-700">
+                {{ $navigationBadges['attendance_pending'] }}
+              </span>
+            @endif
+          </a>
+          @if(Auth::user()->role === 'super_admin')
+            <a href="{{ route('report') }}" class="inline-flex items-center gap-2 border-b-2 border-transparent py-4 px-3 text-sm font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300 duration-200">
+              <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-6m4 6V7m4 10v-3M5 21h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
+              </svg>
+              Reports
+            </a>
+          @endif
         </nav>
       </div>
     </div>
 
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div class="space-y-6">
-        <div>
-          <h2 class="text-3xl font-semibold text-gray-900">Attendance</h2>
-          <p class="text-gray-600 mt-2">Manage attendance records and approve member submissions</p>
+        <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          @if($isMarkingAttendance && $selectedSession)
+            <div>
+              <h2 class="text-3xl font-semibold text-gray-900">{{ $selectedSession->attendance_name }}</h2>
+              <p class="text-gray-600 mt-2">
+                {{ $selectedEvent->event_name }}
+                <span class="mx-1">&bull;</span>
+                {{ \Carbon\Carbon::parse($selectedSession->attendance_date ?? $selectedEvent->start_date)->format('l, F d, Y') }}
+                <span class="mx-1">&bull;</span>
+                Created: {{ optional($selectedSession->created_at)->format('m/d/Y, g:i:s A') ?? 'Not available' }}
+              </p>
+            </div>
+            <a href="{{ route('attendance') }}" class="inline-flex w-full sm:w-auto items-center justify-center gap-2 px-4 py-2 text-sm font-semibold text-[#F2F8FF] bg-[#030213] rounded-md hover:bg-[#0a0920] transition-colors duration-200">
+              <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+              </svg>
+              Back to Attendance List
+            </a>
+          @else
+            <div>
+              <h2 class="text-3xl font-semibold text-gray-900">Attendance</h2>
+              <p class="text-gray-600 mt-2">Manage attendance records for church events</p>
+            </div>
+            <button type="button" onclick="openCreateAttendanceModal()" class="inline-flex w-full sm:w-auto items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-[#F2F8FF] bg-[#030213] rounded-md hover:bg-[#0a0920] transition-colors duration-200">
+              <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+              </svg>
+              Create Attendance
+            </button>
+          @endif
         </div>
 
 
@@ -83,90 +169,123 @@
           </div>
         @endif
 
-        <div class="bg-white rounded-lg shadow border">
-          <div class="px-6 py-4 border-b">
-            <h3 class="text-lg font-semibold">Select Event</h3>
+        @if($attendanceSessions->isEmpty())
+          <div class="bg-white border-2 border-dashed border-gray-300 rounded-lg">
+            <div class="flex flex-col items-center justify-center px-6 py-16 text-center">
+              <svg class="h-16 w-16 text-gray-400 mb-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path>
+              </svg>
+              <h3 class="text-2xl font-semibold text-gray-900">No Attendance Yet</h3>
+              <p class="mt-3 max-w-xl text-gray-600">
+                Get started by creating your first attendance record. You can create multiple attendance records for the same event.
+              </p>
+              <button type="button" onclick="openCreateAttendanceModal()" class="mt-8 inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-semibold text-[#F2F8FF] bg-[#030213] rounded-md hover:bg-[#0a0920] transition-colors duration-200">
+                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                </svg>
+                Create Your First Attendance
+              </button>
+            </div>
           </div>
-          <div class="px-6 py-4">
-            <form method="GET" action="{{ route('attendance') }}" class="space-y-4">
-              <select name="event_id" onchange="this.form.submit()" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-                <option value="">
-                    {{ $events->isEmpty() ? 'No events available' : 'Choose an event...' }}
-                </option>
-                @foreach($events as $event)
-                  <option value="{{ $event->event_id }}" {{ optional($selectedEvent)->event_id == $event->event_id ? 'selected' : '' }}>
-                    {{ $event->event_name }} - {{ \Carbon\Carbon::parse($event->start_date)->format('m/d/Y') }}
-                  </option>
-                @endforeach
-              </select>
-            </form>
-            
+        @elseif(!$isMarkingAttendance)
+          <div class="grid grid-cols-1 gap-3 lg:grid-cols-5">
+            <div class="relative lg:col-span-2">
+              <svg class="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+              </svg>
+              <input
+                type="text"
+                id="attendanceSessionSearch"
+                placeholder="Search attendance name..."
+                class="w-full pl-10 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                onkeyup="filterAttendanceSessions()"
+              />
+            </div>
+            <select id="attendanceEventFilter" onchange="filterAttendanceSessions()" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+              <option value="">All Events</option>
+              @foreach($events as $event)
+                <option value="{{ strtolower($event->event_name) }}">{{ $event->event_name }}</option>
+              @endforeach
+            </select>
+            <select id="attendanceTypeFilter" onchange="filterAttendanceSessions()" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+              <option value="">All Types</option>
+              @foreach($attendanceSessions->pluck('event.type.type_name')->filter()->unique()->sort() as $typeName)
+                <option value="{{ strtolower($typeName) }}">{{ $typeName }}</option>
+              @endforeach
+            </select>
+            <input id="attendanceDateFilter" type="date" onchange="filterAttendanceSessions()" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 lg:col-span-1">
+          </div>
 
-            @if($selectedEvent)
-              <div class="mt-4 p-4 bg-gray-50 rounded-lg space-y-2">
-                <div class="flex items-center gap-2 text-sm">
-                  <svg class="h-4 w-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            @foreach($attendanceSessions as $session)
+            <div class="attendance-session-card bg-white rounded-lg shadow border overflow-hidden"
+                 data-search="{{ strtolower($session->attendance_name . ' ' . ($session->event->event_name ?? '') . ' ' . ($session->event->type->type_name ?? '') . ' ' . ($session->attendance_date ?? '') . ' ' . ($session->created_at ?? '')) }}"
+                 data-event="{{ strtolower($session->event->event_name ?? '') }}"
+                 data-type="{{ strtolower($session->event->type->type_name ?? '') }}"
+                 data-date="{{ $session->attendance_date ?? $session->event->start_date }}">
+              <div class="px-6 py-5 flex items-start justify-between gap-4">
+                <div>
+                  <h3 class="text-xl font-semibold text-gray-900">{{ $session->attendance_name }}</h3>
+                  <span class="mt-3 inline-block px-2 py-1 rounded text-sm font-medium bg-blue-100 text-blue-700">
+                    {{ $session->event->type->type_name ?? 'No Type' }}
+                  </span>
+                </div>
+
+                @if($session->pending_attendance_count > 0)
+                  <span class="inline-flex min-w-[1.5rem] items-center justify-center rounded-full bg-amber-100 px-2 py-1 text-xs font-semibold leading-none text-amber-700">
+                    {{ $session->pending_attendance_count }}
+                  </span>
+                @endif
+              </div>
+
+              <div class="px-6 pb-6 space-y-3">
+                <div class="flex items-center gap-2 text-sm text-gray-600">
+                  <svg class="h-4 w-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+                  </svg>
+                  <span class="font-medium text-gray-700">{{ $session->event->event_name ?? 'No event' }}</span>
+                </div>
+                <div class="flex items-center gap-2 text-sm text-gray-600">
+                  <svg class="h-4 w-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
                   </svg>
-                  <span>{{ \Carbon\Carbon::parse($selectedEvent->start_date)->format('m/d/Y') }}</span>
+                  <span>{{ \Carbon\Carbon::parse($session->attendance_date ?? $session->event->start_date)->format('l, F d, Y') }}</span>
                 </div>
-                <div class="flex items-center gap-2 text-sm">
-                  <svg class="h-4 w-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div class="flex items-center gap-2 text-sm text-gray-600">
+                  <svg class="h-4 w-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path>
+                  </svg>
+                  <span>Created: {{ optional($session->created_at)->format('m/d/Y, g:i:s A') ?? 'Not available' }}</span>
+                </div>
+                <div class="flex items-center gap-2 text-sm text-gray-600">
+                  <svg class="h-4 w-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                   </svg>
-                  <span>{{ \Carbon\Carbon::parse($selectedEvent->start_time)->format('h:i A') }}</span>
+                  <span>
+                    {{ $session->time_in_start ? \Carbon\Carbon::parse($session->time_in_start)->format('g:i A') : 'No time in' }}
+                    -
+                    {{ $session->time_out_end ? \Carbon\Carbon::parse($session->time_out_end)->format('g:i A') : 'No time out' }}
+                  </span>
                 </div>
-                <div class="text-sm text-gray-600">{{ $selectedEvent->type->type_name ?? 'No Type' }}</div>
-              </div>
-            @endif
-          </div>
-        </div>
-        @if($events->isNotEmpty())
+                <div class="flex items-center gap-2 text-sm text-gray-600 pb-3 border-b">
+                  <svg class="h-4 w-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                  </svg>
+                  <span>{{ $session->approved_attendance_count }} Members</span>
+                </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-          <div class="bg-white rounded-lg shadow border">
-            <div class="px-6 py-4">
-              <div class="flex items-center justify-between">
-                <div>
-                  <p class="text-sm text-gray-600">Total Approved</p>
-                  <p class="text-3xl font-semibold text-gray-900">{{ $totalApproved }}</p>
-                </div>
-                <svg class="h-8 w-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path>
-                </svg>
-              </div>
-            </div>
-          </div>
-
-          <div class="bg-white rounded-lg shadow border">
-            <div class="px-6 py-4">
-              <div class="flex items-center justify-between">
-                <div>
-                  <p class="text-sm text-gray-600">Pending Approval</p>
-                  <p class="text-3xl font-semibold text-gray-900">{{ $totalPending }}</p>
-                </div>
-                <svg class="h-8 w-8 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
-                </svg>
+                <a href="{{ route('attendance', ['attendance_session_id' => $session->attendance_session_id, 'view' => 'mark']) }}" class="w-full inline-flex items-center justify-center gap-2 px-4 py-3 text-sm font-semibold text-[#F2F8FF] bg-[#030213] rounded-md hover:bg-[#0a0920] transition-colors duration-200">
+                  <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path>
+                  </svg>
+                  Mark Attendance
+                </a>
               </div>
             </div>
+            @endforeach
           </div>
-
-          <div class="bg-white rounded-lg shadow border">
-            <div class="px-6 py-4">
-              <div class="flex items-center justify-between">
-                <div>
-                  <p class="text-sm text-gray-600">Total Records</p>
-                  <p class="text-3xl font-semibold text-gray-900">{{ $totalRecords }}</p>
-                </div>
-                <svg class="h-8 w-8 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-                </svg>
-              </div>
-            </div>
-          </div>
-        </div>
-
+          <p id="attendanceNoResults" class="hidden text-sm text-gray-500">No attendance records match your search.</p>
+        @else
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <div class="bg-white rounded-lg shadow border">
             <div class="px-6 py-4 border-b">
@@ -178,9 +297,6 @@
               </h3>
             </div>
             <div class="px-6 py-4">
-              @if(!$selectedEvent)
-                <p class="text-sm text-gray-500">Select an event first.</p>
-              @else
                 <div class="space-y-4">
                   <div class="relative">
                     <svg class="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -195,7 +311,7 @@
                     />
                   </div>
 
-                  <div id="memberList" class="space-y-2 max-h-[400px] overflow-y-auto">
+                  <div id="memberList" class="space-y-2 max-h-[260px] overflow-y-auto pr-2">
                     @forelse($availableMembers as $member)
                       <div class="member-item flex items-center justify-between p-3 border border-gray-200 rounded-lg hover:bg-gray-50"
                            data-name="{{ strtolower($member->member_fname . ' ' . $member->member_lname) }}"
@@ -208,7 +324,7 @@
                         <form action="{{ route('attendance.manual') }}" method="POST"
       onsubmit="return confirmForm(this, 'Confirm Attendance', 'Add attendance for this member?')">
                           @csrf
-                          <input type="hidden" name="event_id" value="{{ $selectedEvent->event_id }}">
+                          <input type="hidden" name="attendance_session_id" value="{{ $selectedSession->attendance_session_id }}">
                           <input type="hidden" name="member_id" value="{{ $member->member_id }}">
                           <button type="submit" class="px-3 py-1 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded">
                             Add
@@ -220,7 +336,6 @@
                     @endforelse
                   </div>
                 </div>
-              @endif
             </div>
           </div>
 
@@ -240,7 +355,7 @@
             </div>
 
             <div class="px-6 py-4">
-              <div class="space-y-3 max-h-[400px] overflow-y-auto">
+              <div class="space-y-3 max-h-[260px] overflow-y-auto pr-2">
                 @forelse($pendingAttendances as $attendance)
                   <div class="p-3 border border-amber-200 bg-amber-50 rounded-lg space-y-3">
                     <div>
@@ -322,10 +437,77 @@
             </div>
           </div>
         </div>
+        @endif
       </div>
-      @endif
     </div>
   </div>
+
+  <div id="createAttendanceModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-[9999]">
+    <div class="bg-white rounded-lg shadow-xl max-w-xl w-full">
+      <div class="px-6 pt-6">
+        <div class="flex items-start justify-between gap-4">
+          <div>
+            <h3 class="text-xl font-semibold text-gray-900">Create New Attendance</h3>
+            <p class="text-sm text-gray-600 mt-2">Select an event to create an attendance record.</p>
+          </div>
+          <button type="button" onclick="closeCreateAttendanceModal()" class="text-gray-500 hover:text-gray-800">
+            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <form method="POST" action="{{ route('attendance.sessions.store') }}" class="p-6 space-y-5">
+        @csrf
+        <div>
+          <label for="createAttendanceEvent" class="block text-sm font-medium text-gray-700 mb-2">Event</label>
+          <select id="createAttendanceEvent" name="event_id" required class="w-full px-4 py-3 border border-gray-200 bg-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <option value="">{{ $events->isEmpty() ? 'No events available' : 'Choose an event...' }}</option>
+            @foreach($events as $event)
+              <option value="{{ $event->event_id }}" {{ old('event_id') == $event->event_id ? 'selected' : '' }}>
+                {{ $event->event_name }} - {{ \Carbon\Carbon::parse($event->start_date)->format('m/d/Y') }}
+              </option>
+            @endforeach
+          </select>
+        </div>
+
+        <div>
+          <label for="attendanceName" class="block text-sm font-medium text-gray-700 mb-2">Attendance Name</label>
+          <input id="attendanceName" type="text" name="attendance_name" value="{{ old('attendance_name') }}" required placeholder="e.g. Morning Attendance" class="w-full px-4 py-3 border border-gray-200 bg-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+        </div>
+
+        <div>
+          <label for="attendanceDate" class="block text-sm font-medium text-gray-700 mb-2">Attendance Date</label>
+          <input id="attendanceDate" type="date" name="attendance_date" value="{{ old('attendance_date') }}" class="w-full px-4 py-3 border border-gray-200 bg-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label for="timeInStart" class="block text-sm font-medium text-gray-700 mb-2">Time In</label>
+            <input id="timeInStart" type="time" name="time_in_start" value="{{ old('time_in_start') }}" class="w-full px-4 py-3 border border-gray-200 bg-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+          </div>
+          <div>
+            <label for="timeOutEnd" class="block text-sm font-medium text-gray-700 mb-2">Time Out</label>
+            <input id="timeOutEnd" type="time" name="time_out_end" value="{{ old('time_out_end') }}" class="w-full px-4 py-3 border border-gray-200 bg-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+          </div>
+        </div>
+
+        @if($events->isEmpty())
+          <div class="p-4 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-600">
+            No events are available yet. Create an event first before creating attendance.
+          </div>
+        @endif
+
+        <div>
+          <button type="submit" {{ $events->isEmpty() ? 'disabled' : '' }} class="w-full px-4 py-3 rounded-lg text-sm font-semibold text-[#F2F8FF] bg-[#030213] hover:bg-[#0a0920] disabled:cursor-not-allowed disabled:bg-gray-300 transition">
+            Create Attendance
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
   <script>
@@ -352,11 +534,78 @@ function showToast(message, type = 'success') {
     document.addEventListener('click', function (e) {
       const dropdown = document.getElementById('notificationDropdown');
 
-      if (!e.target.closest('#notificationDropdown') && !e.target.closest('button')) {
+      if (dropdown && !e.target.closest('#notificationDropdown') && !e.target.closest('button')) {
         dropdown.classList.remove('opacity-100', 'scale-100', 'translate-y-0');
         dropdown.classList.add('opacity-0', 'scale-95', '-translate-y-2', 'pointer-events-none');
       }
     });
+
+    function openCreateAttendanceModal() {
+      document.getElementById('createAttendanceModal').classList.remove('hidden');
+    }
+
+    function closeCreateAttendanceModal() {
+      document.getElementById('createAttendanceModal').classList.add('hidden');
+    }
+
+    function selectAttendanceEvent(eventId) {
+      document.getElementById('createAttendanceEvent').value = eventId;
+    }
+
+    function filterCards(inputId, cardSelector, emptyStateId) {
+      const input = document.getElementById(inputId);
+      const cards = document.querySelectorAll(cardSelector);
+      const emptyState = document.getElementById(emptyStateId);
+
+      if (!input) {
+        return;
+      }
+
+      const search = input.value.toLowerCase();
+      let visibleCount = 0;
+
+      cards.forEach(card => {
+        const haystack = card.dataset.search || card.textContent.toLowerCase();
+        const isVisible = haystack.includes(search);
+        card.style.display = isVisible ? '' : 'none';
+
+        if (isVisible) {
+          visibleCount++;
+        }
+      });
+
+      if (emptyState) {
+        emptyState.classList.toggle('hidden', visibleCount > 0);
+      }
+    }
+
+    function filterAttendanceSessions() {
+      const search = (document.getElementById('attendanceSessionSearch')?.value || '').toLowerCase();
+      const event = (document.getElementById('attendanceEventFilter')?.value || '').toLowerCase();
+      const type = (document.getElementById('attendanceTypeFilter')?.value || '').toLowerCase();
+      const date = document.getElementById('attendanceDateFilter')?.value || '';
+      const cards = document.querySelectorAll('.attendance-session-card');
+      const emptyState = document.getElementById('attendanceNoResults');
+      let visibleCount = 0;
+
+      cards.forEach(card => {
+        const matchesSearch = !search || (card.dataset.search || '').includes(search);
+        const matchesEvent = !event || card.dataset.event === event;
+        const matchesType = !type || card.dataset.type === type;
+        const matchesDate = !date || card.dataset.date === date;
+        const isVisible = matchesSearch && matchesEvent && matchesType && matchesDate;
+
+        card.style.display = isVisible ? '' : 'none';
+
+        if (isVisible) {
+          visibleCount++;
+        }
+      });
+
+      if (emptyState) {
+        emptyState.classList.toggle('hidden', visibleCount > 0);
+      }
+    }
 
     function filterMembers() {
       const input = document.getElementById('memberSearch').value.toLowerCase();

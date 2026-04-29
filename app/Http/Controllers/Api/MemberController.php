@@ -4,14 +4,13 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Members;
-use App\Models\Address;
 use Illuminate\Http\Request;
 
 class MemberController extends Controller
 {
     public function index()
     {
-        $members = Members::with(['address', 'ministries'])->get();
+        $members = Members::with(['ministries'])->get();
 
         return response()->json([
             'success' => true,
@@ -57,13 +56,13 @@ class MemberController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Member created successfully.',
-            'data' => $member->load(['address', 'ministries']),
+            'data' => $member->load(['ministries']),
         ], 201);
     }
 
     public function show($id)
     {
-        $member = Members::with(['address', 'ministries'])->findOrFail($id);
+        $member = Members::with(['ministries'])->findOrFail($id);
 
         return response()->json([
             'success' => true,

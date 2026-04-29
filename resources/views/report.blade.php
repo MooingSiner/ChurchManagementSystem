@@ -19,6 +19,29 @@
     -ms-overflow-style: none;
     scrollbar-width: none;
   }
+
+  @keyframes pageFadeUp {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes cardFadeUp {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes modalPop {
+    from { opacity: 0; transform: translateY(8px) scale(0.98); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .min-h-screen > .max-w-7xl { animation: pageFadeUp 260ms ease-out both; }
+    .rounded-lg.shadow, .rounded-lg.shadow-sm { animation: cardFadeUp 240ms ease-out both; }
+    .fixed:not(.hidden) > .bg-white { animation: modalPop 180ms ease-out both; }
+    button, a.inline-flex { transition-property: transform, color, background-color, border-color, box-shadow, opacity; }
+    button:hover, a.inline-flex:hover { transform: translateY(-1px); }
+  }
 </style>
 </head>
 <body class="bg-gray-50 bg-gradient-to-br from-blue-50 via-white to-purple-50">
@@ -34,10 +57,12 @@
           <div class="flex flex-wrap items-center gap-2 sm:gap-4">
 
     <!-- Logged-in User -->
-    <div class="flex items-center gap-2 text-gray-700 font-medium">
+    <div class="flex items-center gap-2 text-gray-700">
         <img src="{{ asset('images/icons/user-icon.png') }}" alt="User Icon" class="h-6 w-6">
-
-        {{ Auth::user()->username }}
+        <div class="leading-tight">
+          <div class="font-medium">{{ Auth::user()->username }}</div>
+          <div class="text-xs text-gray-500">{{ $currentRoleLabel }}</div>
+        </div>
     </div>
 
     <!-- Logout -->
@@ -59,11 +84,43 @@
     <div class="bg-white border-b">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <nav class="flex gap-4 overflow-x-auto whitespace-nowrap scrollbar-hide">
-          <a href="{{ route('dashboard') }}" class="border-b-2 border-transparent py-4 px-1 text-sm font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300 duration-200">Dashboard</a>
-          <a href="{{ route('members.index') }}" class="border-b-2 border-transparent py-4 px-1 text-sm font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300 duration-200">Members</a>
-          <a href="{{ route('events.index') }}" class="border-b-2 border-transparent py-4 px-1 text-sm font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300 duration-200">Events</a>
-          <a href="{{ route('attendance') }}" class="border-b-2 border-transparent py-4 px-1 text-sm font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300 duration-200">Attendance</a>
-          <a href="{{ route('report') }}" class="border-b-2 border-blue-600 py-4 px-1 text-sm font-medium text-blue-600 duration-200">Reports</a>
+          <a href="{{ route('dashboard') }}" class="inline-flex items-center gap-2 border-b-2 border-transparent py-4 px-3 text-sm font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300 duration-200">
+            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
+            </svg>
+            Dashboard
+          </a>
+          @if(Auth::user()->role === 'super_admin')
+            <a href="{{ route('members.index') }}" class="inline-flex items-center gap-2 border-b-2 border-transparent py-4 px-3 text-sm font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300 duration-200">
+              <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+              </svg>
+              Members
+            </a>
+          @endif
+          <a href="{{ route('events.index') }}" class="inline-flex items-center gap-2 border-b-2 border-transparent py-4 px-3 text-sm font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300 duration-200">
+            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+            </svg>
+            Events
+          </a>
+          <a href="{{ route('attendance') }}" class="inline-flex items-center gap-2 border-b-2 border-transparent py-4 px-3 text-sm font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300 duration-200">
+            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path>
+            </svg>
+            Attendance
+            @if(($navigationBadges['attendance_pending'] ?? 0) > 0)
+              <span class="inline-flex min-w-[1.25rem] items-center justify-center rounded-full bg-amber-100 px-1.5 py-0.5 text-xs font-semibold leading-none text-amber-700">
+                {{ $navigationBadges['attendance_pending'] }}
+              </span>
+            @endif
+          </a>
+          <a href="{{ route('report') }}" class="inline-flex items-center gap-2 border-b-2 border-blue-600 py-4 px-3 text-sm font-medium text-blue-600 duration-200">
+            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-6m4 6V7m4 10v-3M5 21h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
+            </svg>
+            Reports
+          </a>
         </nav>
       </div>
     </div>
@@ -122,7 +179,7 @@
             <div class="px-6 py-4">
               <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                 <div>
-                  <p class="text-sm text-gray-600">Total Attendance</p>
+                  <p class="text-sm text-gray-600">Approved Attendance</p>
                   <p class="text-3xl font-semibold text-gray-900">{{ $totalAttendance }}</p>
                 </div>
                 <svg class="h-8 w-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -136,7 +193,7 @@
             <div class="px-6 py-4">
               <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                 <div>
-                  <p class="text-sm text-gray-600">Avg. Attendance</p>
+                  <p class="text-sm text-gray-600">Avg. Attendance / Session</p>
                   <p class="text-3xl font-semibold text-gray-900">{{ $avgAttendance }}</p>
                 </div>
                 <svg class="h-8 w-8 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -154,31 +211,38 @@
     </div>
 
     <div class="px-6 py-4">
-        <div class="space-y-2">
-    @forelse($reportHistory as $event)
+        <div class="space-y-2 max-h-[560px] overflow-y-auto pr-2">
+    @forelse($reportHistory as $session)
         <div class="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
             <div class="flex-1">
-                <div class="font-medium text-gray-900">{{ $event->event_name }}</div>
+                <div class="font-medium text-gray-900">{{ $session->attendance_name }}</div>
                 <div class="flex items-center gap-4 mt-1 text-sm text-gray-600 flex-wrap">
+                    <div class="text-gray-700">
+                        {{ $session->event->event_name ?? 'No event' }}
+                    </div>
                     <div class="flex items-center gap-1">
                         <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
                         </svg>
-                        <span>{{ \Carbon\Carbon::parse($event->start_date)->format('F d, Y') }}</span>
+                        <span>{{ \Carbon\Carbon::parse($session->attendance_date ?? $session->event->start_date)->format('F d, Y') }}</span>
                     </div>
                     <div class="flex items-center gap-1">
                         <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                         </svg>
-                        <span>{{ \Carbon\Carbon::parse($event->start_time)->format('h:i A') }}</span>
+                        <span>
+                            {{ $session->time_in_start ? \Carbon\Carbon::parse($session->time_in_start)->format('h:i A') : 'No time in' }}
+                            -
+                            {{ $session->time_out_end ? \Carbon\Carbon::parse($session->time_out_end)->format('h:i A') : 'No time out' }}
+                        </span>
                     </div>
                     <div class="text-xs px-2 py-1 rounded bg-blue-100 text-blue-700">
-                        {{ $event->type->type_name ?? 'No Type' }}
+                        {{ $session->event->type->type_name ?? 'No Type' }}
                     </div>
                 </div>
             </div>
             <div class="text-right">
-                <div class="text-2xl font-semibold text-blue-600">{{ $event->approved_attendance_count }}</div>
+                <div class="text-2xl font-semibold text-blue-600">{{ $session->approved_attendance_count }}</div>
                 <div class="text-xs text-gray-500">members attended</div>
             </div>
         </div>
@@ -260,13 +324,21 @@ function showToast(message, type = 'success') {
         data: {
             labels: attendanceByEventLabels,
             datasets: [{
-                label: 'Attendance',
+                label: 'Approved Attendance',
                 data: attendanceByEventData
             }]
         },
         options: {
             responsive: true,
-            maintainAspectRatio: false
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        precision: 0
+                    }
+                }
+            }
         }
     });
 
@@ -342,6 +414,13 @@ function closeConfirmModal() {
     selectedForm = null;
     document.getElementById('confirmModal').classList.add('hidden');
 }
+
+document.getElementById('confirmButton').addEventListener('click', function () {
+    if (selectedForm) {
+        selectedForm.submit();
+    }
+});
+
 function dangerconfirmForm(form, title, message) {
     selectedForm = form;
 
@@ -378,7 +457,6 @@ function closeDangerModal() {
     showToast("{{ session('error') }}", "error");
 </script>
 @endif
-</script>
 
 </body>
 

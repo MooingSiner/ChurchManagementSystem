@@ -19,6 +19,29 @@
     -ms-overflow-style: none;
     scrollbar-width: none;
   }
+
+  @keyframes pageFadeUp {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes cardFadeUp {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes modalPop {
+    from { opacity: 0; transform: translateY(8px) scale(0.98); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .min-h-screen > .max-w-7xl { animation: pageFadeUp 260ms ease-out both; }
+    .rounded-lg.shadow, .rounded-lg.shadow-sm { animation: cardFadeUp 240ms ease-out both; }
+    .fixed:not(.hidden) > .bg-white { animation: modalPop 180ms ease-out both; }
+    button, a.inline-flex { transition-property: transform, color, background-color, border-color, box-shadow, opacity; }
+    button:hover, a.inline-flex:hover { transform: translateY(-1px); }
+  }
 </style>
 </head>
 
@@ -34,10 +57,12 @@
           </div>
           <div class="flex flex-wrap items-center gap-2 sm:gap-4">
     <!-- Logged-in User -->
-    <div class="flex items-center gap-2 text-gray-700 font-medium">
+    <div class="flex items-center gap-2 text-gray-700">
         <img src="{{ asset('images/icons/user-icon.png') }}" alt="User Icon" class="h-6 w-6">
-
-        {{ Auth::user()->username }}
+        <div class="leading-tight">
+          <div class="font-medium">{{ Auth::user()->username }}</div>
+          <div class="text-xs text-gray-500">{{ $currentRoleLabel }}</div>
+        </div>
     </div>
 
     <!-- Logout -->
@@ -60,12 +85,44 @@
     <div class="bg-white border-b">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <nav class="flex gap-4 overflow-x-auto whitespace-nowrap scrollbar-hide">
-          <a href="{{ route('dashboard') }}" class="border-b-2 border-transparent py-4 px-1 text-sm font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300 duration-200">Dashboard</a>
-          <a href="{{ route('members.index') }}" class="border-b-2 border-blue-600 py-4 px-1 text-sm font-medium text-blue-600 duration-200">Members</a>
-          <a href="{{ route('events.index') }}" class="border-b-2 border-transparent py-4 px-1 text-sm font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300 duration-200">Events</a>
-          <a href="{{ route('attendance') }}" class="border-b-2 border-transparent py-4 px-1 text-sm font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300 duration-200">Attendance</a>
-          <a href="{{ route('report') }}" class="border-b-2 border-transparent py-4 px-1 text-sm font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300 duration-200">Reports</a>
-                  </nav>
+          <a href="{{ route('dashboard') }}" class="inline-flex items-center gap-2 border-b-2 border-transparent py-4 px-3 text-sm font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300 duration-200">
+            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
+            </svg>
+            Dashboard
+          </a>
+          <a href="{{ route('members.index') }}" class="inline-flex items-center gap-2 border-b-2 border-blue-600 py-4 px-3 text-sm font-medium text-blue-600 duration-200">
+            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+            </svg>
+            Members
+          </a>
+          <a href="{{ route('events.index') }}" class="inline-flex items-center gap-2 border-b-2 border-transparent py-4 px-3 text-sm font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300 duration-200">
+            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+            </svg>
+            Events
+          </a>
+          <a href="{{ route('attendance') }}" class="inline-flex items-center gap-2 border-b-2 border-transparent py-4 px-3 text-sm font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300 duration-200">
+            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path>
+            </svg>
+            Attendance
+            @if(($navigationBadges['attendance_pending'] ?? 0) > 0)
+              <span class="inline-flex min-w-[1.25rem] items-center justify-center rounded-full bg-amber-100 px-1.5 py-0.5 text-xs font-semibold leading-none text-amber-700">
+                {{ $navigationBadges['attendance_pending'] }}
+              </span>
+            @endif
+          </a>
+          @if(Auth::user()->role === 'super_admin')
+            <a href="{{ route('report') }}" class="inline-flex items-center gap-2 border-b-2 border-transparent py-4 px-3 text-sm font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300 duration-200">
+              <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-6m4 6V7m4 10v-3M5 21h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
+              </svg>
+              Reports
+            </a>
+          @endif
+        </nav>
       </div>
     </div>
 
@@ -99,6 +156,32 @@
     </button>
 </div>
 
+<div class="grid grid-cols-1 gap-3 lg:grid-cols-4">
+    <div class="relative lg:col-span-2">
+        <svg class="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+        </svg>
+        <input
+            type="text"
+            id="memberSearch"
+            placeholder="Search name, email, phone, or address..."
+            class="w-full pl-10 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            onkeyup="filterMemberCards()"
+        />
+    </div>
+    <select id="memberMinistryFilter" onchange="filterMemberCards()" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+        <option value="">All Ministries</option>
+        @foreach($ministries as $ministry)
+            <option value="{{ strtolower($ministry->ministry_name) }}">{{ $ministry->ministry_name }}</option>
+        @endforeach
+    </select>
+    <select id="memberGenderFilter" onchange="filterMemberCards()" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+        <option value="">All Genders</option>
+        <option value="male">Male</option>
+        <option value="female">Female</option>
+    </select>
+</div>
+
 <!-- Approved Members Section -->
 <div id="approvedSection">
     @if($members->isEmpty())
@@ -122,7 +205,10 @@
     @else
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             @foreach($members as $member)
-                <div class="bg-white rounded-lg shadow border w-full">
+                <div class="member-card bg-white rounded-lg shadow border w-full"
+                     data-search="{{ strtolower($member->member_fname . ' ' . $member->member_mname . ' ' . $member->member_lname . ' ' . $member->gender . ' ' . $member->birth_date . ' ' . $member->email . ' ' . $member->phone_number . ' ' . $member->street . ' ' . $member->city . ' ' . $member->province . ' ' . $member->ministries->pluck('ministry_name')->join(' ')) }}"
+                     data-gender="{{ strtolower($member->gender) }}"
+                     data-ministry="{{ strtolower($member->ministries->pluck('ministry_name')->join('|')) }}">
                     <div class="px-6 py-4 border-b">
                         <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                             <div>
@@ -135,6 +221,16 @@
                             </div>
 
                             <div class="flex gap-1">
+                                <button
+                                    type="button"
+                                    onclick="openMemberQrModal('{{ $member->member_id }}', @js($member->member_fname . ' ' . $member->member_lname), @js($member->email))"
+                                    class="h-8 w-8 flex items-center justify-center text-[#030213] hover:text-blue-700 hover:bg-blue-50 rounded transition-colors"
+                                    title="View QR Code">
+                                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4h6v6H4V4zm10 0h6v6h-6V4zM4 14h6v6H4v-6zm10 0h2v2h-2v-2zm4 0h2v2h-2v-2zm-4 4h2v2h-2v-2zm4 0h2v2h-2v-2z"/>
+                                    </svg>
+                                </button>
+
                                 <button 
                                     onclick="openEditMemberModal(
                                         '{{ $member->member_id }}',
@@ -198,7 +294,7 @@
                           <svg class="h-4 w-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 15.546c-.523 0-1.046.151-1.5.454a2.704 2.704 0 01-3 0 2.704 2.704 0 00-3 0 2.704 2.704 0 01-3 0 2.704 2.704 0 00-3 0 2.704 2.704 0 01-3 0 2.701 2.701 0 00-1.5-.454M9 6v2m3-2v2m3-2v2M9 3h.01M12 3h.01M15 3h.01M21 21v-7a2 2 0 00-2-2H5a2 2 0 00-2 2v7h18zm-3-9v-2a2 2 0 00-2-2H8a2 2 0 00-2 2v2h12z"/>
                                 </svg>
-                            {{ $member->birth_date }}
+                            {{ \Carbon\Carbon::parse($member->birth_date)->format('F d, Y') }}
                         </div>
 
                         <div class="flex items-center gap-2 text-sm text-gray-600" >
@@ -217,6 +313,7 @@
                 </div>
             @endforeach
         </div>
+        <p id="approvedNoResults" class="hidden mt-4 text-sm text-gray-500">No approved members match your search.</p>
     @endif
 </div>
 
@@ -238,7 +335,10 @@
     @else
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             @foreach($archivedMembers as $member)
-                <div class="bg-white rounded-lg shadow border w-full opacity-80">
+                <div class="member-card bg-white rounded-lg shadow border w-full opacity-80"
+                     data-search="{{ strtolower($member->member_fname . ' ' . $member->member_mname . ' ' . $member->member_lname . ' ' . $member->gender . ' ' . $member->birth_date . ' ' . $member->email . ' ' . $member->phone_number . ' ' . $member->street . ' ' . $member->city . ' ' . $member->province . ' ' . $member->ministries->pluck('ministry_name')->join(' ')) }}"
+                     data-gender="{{ strtolower($member->gender) }}"
+                     data-ministry="{{ strtolower($member->ministries->pluck('ministry_name')->join('|')) }}">
                     <div class="px-6 py-4 border-b">
                         <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                             <div>
@@ -250,6 +350,16 @@
                                 </p>
                             </div>
                             <div class="flex gap-1">
+                            <button
+                              type="button"
+                              onclick="openMemberQrModal('{{ $member->member_id }}', @js($member->member_fname . ' ' . $member->member_lname), @js($member->email))"
+                              class="h-8 w-8 flex items-center justify-center text-[#030213] hover:text-blue-700 hover:bg-blue-50 rounded transition-colors"
+                              title="View QR Code">
+                              <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4h6v6H4V4zm10 0h6v6h-6V4zM4 14h6v6H4v-6zm10 0h2v2h-2v-2zm4 0h2v2h-2v-2zm-4 4h2v2h-2v-2zm4 0h2v2h-2v-2z"/>
+                              </svg>
+                          </button>
+
                             <button 
                               onclick="openEditMemberModal(
                                   '{{ $member->member_id }}',
@@ -313,7 +423,7 @@
                           <svg class="h-4 w-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 15.546c-.523 0-1.046.151-1.5.454a2.704 2.704 0 01-3 0 2.704 2.704 0 00-3 0 2.704 2.704 0 01-3 0 2.704 2.704 0 00-3 0 2.704 2.704 0 01-3 0 2.701 2.701 0 00-1.5-.454M9 6v2m3-2v2m3-2v2M9 3h.01M12 3h.01M15 3h.01M21 21v-7a2 2 0 00-2-2H5a2 2 0 00-2 2v7h18zm-3-9v-2a2 2 0 00-2-2H8a2 2 0 00-2 2v2h12z"/>
                                 </svg>
-                            {{ $member->birth_date }}
+                            {{ \Carbon\Carbon::parse($member->birth_date)->format('F d, Y') }}
                         </div>
 
                         <div class="flex items-center gap-2 text-sm text-gray-600" >
@@ -336,13 +446,14 @@
 
                             <span>
                                 Archived
-                                {{ $member->archived_at ? $member->archived_at->format('n/j/Y') : 'N/A' }}
+                                {{ $member->archived_at ? $member->archived_at->format('F d, Y') : 'N/A' }}
                             </span>
                         </div>
                     </div>
                 </div>
             @endforeach
         </div>
+        <p id="archivedNoResults" class="hidden mt-4 text-sm text-gray-500">No archived members match your search.</p>
     @endif
 </div>
       </div>
@@ -642,7 +753,43 @@
     </div>
   </div>
 </div>
+
+<div id="memberQrModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+  <div class="bg-white rounded-lg shadow-xl max-w-sm w-full">
+    <div class="px-6 py-4 border-b flex items-start justify-between gap-4">
+      <div>
+        <h3 class="text-xl font-semibold">Member QR Code</h3>
+        <p id="qrMemberName" class="text-sm text-gray-600 mt-1"></p>
+      </div>
+      <button type="button" onclick="closeMemberQrModal()" class="h-8 w-8 flex items-center justify-center text-gray-500 hover:text-gray-700 rounded">
+        &times;
+      </button>
+    </div>
+
+    <div class="p-6 space-y-4">
+      <div class="rounded-lg border border-gray-200 bg-white p-8 flex justify-center">
+        <div id="memberQrCode" class="bg-white p-12 rounded-md shadow-lg"></div>
+      </div>
+
+      <div class="rounded-md bg-blue-50 border border-blue-100 px-4 py-3">
+        <div class="text-xs uppercase tracking-wide text-blue-700 font-semibold">Member ID</div>
+        <div id="qrMemberId" class="text-lg font-semibold text-gray-900 mt-1"></div>
+        <div id="qrMemberEmail" class="text-sm text-gray-600 mt-1"></div>
+      </div>
+
+      <div class="flex gap-3">
+        <button type="button" onclick="closeMemberQrModal()" class="flex-1 px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
+          Close
+        </button>
+        <button type="button" onclick="downloadMemberQr()" class="flex-1 px-4 py-2 rounded-md text-sm font-medium text-[#F2F8FF] bg-[#030213] hover:bg-[#0a0920]">
+          Download
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
 <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
 <script>
 function showToast(message, type = 'success') {
@@ -669,6 +816,9 @@ document.addEventListener('click', function (e) {
     const dropdown = document.getElementById('notificationDropdown');
 
     if (!e.target.closest('#notificationDropdown') && !e.target.closest('button')) {
+        if (!dropdown) {
+            return;
+        }
         dropdown.classList.remove('opacity-100', 'scale-100', 'translate-y-0');
         dropdown.classList.add('opacity-0', 'scale-95', '-translate-y-2', 'pointer-events-none');
     }
@@ -706,9 +856,63 @@ document.addEventListener('click', function (e) {
   function closeEditMemberModal() {
     document.getElementById('editMemberModal').classList.add('hidden');
   }
+
+  let currentQrMemberId = null;
+  let currentQrMemberName = null;
+
+  function openMemberQrModal(memberId, memberName, memberEmail) {
+    currentQrMemberId = memberId;
+    currentQrMemberName = memberName;
+
+    document.getElementById('qrMemberName').textContent = memberName;
+    document.getElementById('qrMemberId').textContent = `#${memberId}`;
+    document.getElementById('qrMemberEmail').textContent = memberEmail || 'No email';
+
+    const qrTarget = document.getElementById('memberQrCode');
+    qrTarget.innerHTML = '';
+
+    if (typeof QRCode === 'undefined') {
+        qrTarget.innerHTML = '<p class="text-sm text-red-600 text-center">QR generator failed to load.</p>';
+    } else {
+        new QRCode(qrTarget, {
+            text: `member:${memberId}`,
+            width: 320,
+            height: 320,
+            colorDark: '#000000',
+            colorLight: '#ffffff',
+            correctLevel: QRCode.CorrectLevel.H
+        });
+    }
+
+    document.getElementById('memberQrModal').classList.remove('hidden');
+  }
+
+  function closeMemberQrModal() {
+    document.getElementById('memberQrModal').classList.add('hidden');
+  }
+
+  function downloadMemberQr() {
+    const qrTarget = document.getElementById('memberQrCode');
+    const canvas = qrTarget.querySelector('canvas');
+    const image = qrTarget.querySelector('img');
+    const source = canvas ? canvas.toDataURL('image/png') : image?.src;
+
+    if (!source) {
+        showToast('QR code is not ready yet.', 'error');
+        return;
+    }
+
+    const link = document.createElement('a');
+    const safeName = (currentQrMemberName || 'member').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+    link.href = source;
+    link.download = `${safeName || 'member'}-${currentQrMemberId}-qr.png`;
+    link.click();
+  }
+
   function showApproved() {
     document.getElementById('approvedSection').classList.remove('hidden');
     document.getElementById('archivedSection').classList.add('hidden');
+    filterMemberCards();
 
     document.getElementById('approvedBtn').classList.add('bg-white', 'shadow', 'text-[#030213]');
     document.getElementById('approvedBtn').classList.remove('text-gray-500');
@@ -720,12 +924,52 @@ document.addEventListener('click', function (e) {
 function showArchived() {
     document.getElementById('approvedSection').classList.add('hidden');
     document.getElementById('archivedSection').classList.remove('hidden');
+    filterMemberCards();
 
     document.getElementById('archivedBtn').classList.add('bg-white', 'shadow', 'text-[#030213]');
     document.getElementById('archivedBtn').classList.remove('text-gray-500');
 
     document.getElementById('approvedBtn').classList.remove('bg-white', 'shadow', 'text-[#030213]');
     document.getElementById('approvedBtn').classList.add('text-gray-500');
+}
+
+function filterMemberCards() {
+    const input = document.getElementById('memberSearch');
+    const search = input ? input.value.toLowerCase() : '';
+    const ministry = (document.getElementById('memberMinistryFilter')?.value || '').toLowerCase();
+    const gender = (document.getElementById('memberGenderFilter')?.value || '').toLowerCase();
+
+    filterSectionCards('approvedSection', search, ministry, gender, 'approvedNoResults');
+    filterSectionCards('archivedSection', search, ministry, gender, 'archivedNoResults');
+}
+
+function filterSectionCards(sectionId, search, ministry, gender, emptyStateId) {
+    const section = document.getElementById(sectionId);
+    const emptyState = document.getElementById(emptyStateId);
+
+    if (!section) {
+        return;
+    }
+
+    const cards = section.querySelectorAll('.member-card');
+    let visibleCount = 0;
+
+    cards.forEach(card => {
+        const haystack = card.dataset.search || card.textContent.toLowerCase();
+        const matchesSearch = !search || haystack.includes(search);
+        const matchesMinistry = !ministry || (card.dataset.ministry || '').split('|').includes(ministry);
+        const matchesGender = !gender || card.dataset.gender === gender;
+        const isVisible = matchesSearch && matchesMinistry && matchesGender;
+        card.style.display = isVisible ? '' : 'none';
+
+        if (isVisible) {
+            visibleCount++;
+        }
+    });
+
+    if (emptyState) {
+        emptyState.classList.toggle('hidden', visibleCount > 0);
+    }
 }
 </script>
 @if(session('success'))

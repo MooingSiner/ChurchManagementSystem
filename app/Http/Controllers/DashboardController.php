@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Members;
 use App\Models\Event;
 use App\Models\Attendance;
+use App\Models\AttendanceSession;
 
 class DashboardController extends Controller
 {
@@ -15,18 +16,24 @@ class DashboardController extends Controller
 
         $totalEvents = Event::count();
 
-        $attendanceRecords = Attendance::where('status', 'Present')->count();
+        $attendanceRecords = Attendance::where('status', 'Present')
+            ->whereNotNull('attendance_session_id')
+            ->count();
 
-        $averageAttendance = $totalEvents > 0
-            ? round($attendanceRecords / $totalEvents)
+        $totalAttendanceSessions = AttendanceSession::count();
+
+        $averageAttendance = $totalAttendanceSessions > 0
+            ? round($attendanceRecords / $totalAttendanceSessions)
             : 0;
 
-        $recentEvents = Event::withCount([
+        $recentAttendanceSessions = AttendanceSession::with('event')
+            ->withCount([
             'attendances as attendance_count' => function ($query) {
                 $query->where('status', 'Present');
             }
         ])
-        ->orderByDesc('start_date')
+        ->latest('attendance_date')
+        ->latest()
         ->take(5)
         ->get();
 
@@ -35,8 +42,9 @@ class DashboardController extends Controller
             'archivedMembers',
             'totalEvents',
             'attendanceRecords',
+            'totalAttendanceSessions',
             'averageAttendance',
-            'recentEvents'
+            'recentAttendanceSessions'
         ));
     }
 }

@@ -6,15 +6,15 @@ use App\Http\Controllers\Api\EventController;
 use App\Http\Controllers\Api\AttendanceController;
 use App\Http\Controllers\Api\ReportController;
 
-Route::name('api.')->group(function () {
-    Route::apiResource('members', \App\Http\Controllers\Api\MemberController::class);
-});
-Route::name('api.')->group(function () {
-    Route::apiResource('events', \App\Http\Controllers\Api\EventController::class);
-});
-Route::name('api.')->group(function () {
-    Route::apiResource('attendance', \App\Http\Controllers\Api\AttendanceController::class)->only(['index', 'store', 'show']);
-});
-Route::name('api.')->group(function () {
+Route::post('attendance/scan', [AttendanceController::class, 'scanAttendance'])
+    ->middleware('throttle:scan-attendance');
+
+Route::middleware(['web', 'auth', 'role:super_admin'])->name('api.')->group(function () {
+    Route::apiResource('members', MemberController::class);
     Route::get('reports', [ReportController::class, 'index']);
+});
+
+Route::middleware(['web', 'auth', 'role:super_admin,admin'])->name('api.')->group(function () {
+    Route::apiResource('events', EventController::class);
+    Route::apiResource('attendance', AttendanceController::class)->only(['index', 'store', 'show']);
 });

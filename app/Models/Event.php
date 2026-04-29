@@ -35,4 +35,9 @@ class Event extends Model
     {
         return $this->hasMany(Attendance::class, 'event_id', 'event_id');
     }
+
+    public function attendanceSessions()
+    {
+        return $this->hasMany(AttendanceSession::class, 'event_id', 'event_id');
+    }
 }

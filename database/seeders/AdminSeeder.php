@@ -9,15 +9,15 @@ use Illuminate\Support\Facades\Hash;
 
 class AdminSeeder extends Seeder
 {
-    
-
-        public function run()
-        {
-            Admin::create([
+    public function run()
+    {
+        Admin::updateOrCreate(
+            ['username' => 'superadmin'],
+            [
                 'username' => 'superadmin',
-                'password' => Hash::make('admin123'),
+                'password' => Hash::make(env('DEFAULT_SUPERADMIN_PASSWORD', 'ChangeMe-SuperAdmin-2026!')),
                 'role' => 'super_admin',
-            ]);
-        }
+            ]
+        );
     }
-
+}

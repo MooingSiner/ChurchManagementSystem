@@ -21,6 +21,19 @@ class Admin extends Authenticatable
         'password',
     ];
 
+    protected $appends = [
+        'role_label',
+    ];
+
+    public function getRoleLabelAttribute(): string
+    {
+        return match ($this->role) {
+            'super_admin' => 'Church Administrator',
+            'admin' => 'Attendance Coordinator',
+            default => 'Administrator',
+        };
+    }
+
 
     public function events()
     {
@@ -30,5 +43,10 @@ class Admin extends Authenticatable
     public function attendances()
     {
         return $this->hasMany(Attendance::class, 'admin_id', 'admin_id');
+    }
+
+    public function attendanceSessions()
+    {
+        return $this->hasMany(AttendanceSession::class, 'admin_id', 'admin_id');
     }
 }
