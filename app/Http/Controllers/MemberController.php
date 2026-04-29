@@ -4,11 +4,29 @@ namespace App\Http\Controllers;
 
 use App\Models\Members;
 use App\Models\Ministry;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Exception;
 
 class MemberController extends Controller
 {   
+    protected function memberErrorMessage(Exception $e, string $action): string
+    {
+        if ($e instanceof QueryException) {
+            return match (true) {
+                str_contains(strtolower($e->getMessage()), 'email') => 'That email is already in use. Use a different email address or update the existing member record.',
+                str_contains(strtolower($e->getMessage()), 'phone') => 'That phone number is already in use. Check the number or update the existing member record instead.',
+                default => "Could not {$action} the member because the record conflicts with existing data. Review the form and try again.",
+            };
+        }
+
+        if ($e instanceof ModelNotFoundException) {
+            return 'That member record could not be found. Refresh the page and try again.';
+        }
+
+        return "Could not {$action} the member right now. Refresh the page and try again.";
+    }
 
     public function member()
     {
@@ -77,7 +95,7 @@ class MemberController extends Controller
         }catch(Exception $e) {
         return redirect()->back()
             ->withInput()
-            ->with('error', 'Failed to add member. Please check the details and try again.');
+            ->with('error', $this->memberErrorMessage($e, 'add'));
     }
     }
 
@@ -139,7 +157,7 @@ class MemberController extends Controller
         }catch (Exception $e) {
         return redirect()->back()
             ->withInput()
-            ->with('error', 'Failed to update member. Please check the details and try again.');
+            ->with('error', $this->memberErrorMessage($e, 'update'));
     }
     }
 
@@ -158,7 +176,7 @@ class MemberController extends Controller
     }catch(Exception $e) {
         return redirect()->back()
             ->withInput()
-            ->with('error', 'Failed to archive member. Please check the details and try again.');
+            ->with('error', $this->memberErrorMessage($e, 'archive'));
     }
 }
     
@@ -177,7 +195,7 @@ public function restore($id)
     }catch(Exception $e) {
         return redirect()->back()
             ->withInput()
-            ->with('error', 'Failed to restore member. Please check the details and try again.');
+            ->with('error', $this->memberErrorMessage($e, 'restore'));
     }
 }
     

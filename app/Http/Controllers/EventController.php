@@ -4,13 +4,56 @@ namespace App\Http\Controllers;
 
 use App\Models\Event;
 use App\Models\Type;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Validator;
 use Carbon\Carbon;
 use Exception;
 
 class EventController extends Controller
 {
+    protected function eventErrorMessage(Exception $e, string $action): string
+    {
+        if ($e instanceof ModelNotFoundException) {
+            return 'That event could not be found. Refresh the page and try again.';
+        }
+
+        return match ($action) {
+            'create' => 'Could not create the event. Check the event dates, times, and type, then try again.',
+            'update' => 'Could not update the event. Make sure the end date/time is after the start and try again.',
+            'delete' => 'Could not delete the event right now. Refresh the list and try again.',
+            'finish' => 'Could not mark the event as completed. Refresh the page and try again.',
+            default => 'Could not save the event right now. Please try again.',
+        };
+    }
+
+    protected function validateEvent(Request $request): array
+    {
+        $validator = Validator::make($request->all(), [
+            'event_name' => 'required|string|max:255',
+            'type_id' => 'required|integer|exists:types,type_id',
+            'start_date' => 'required|date',
+            'end_date' => 'required|date|after_or_equal:start_date',
+            'start_time' => 'required|date_format:H:i',
+            'end_time' => 'required|date_format:H:i',
+            'description' => 'nullable|string',
+        ]);
+
+        $validator->after(function ($validator) use ($request) {
+            $startDate = $request->input('start_date');
+            $endDate = $request->input('end_date');
+            $startTime = $request->input('start_time');
+            $endTime = $request->input('end_time');
+
+            if ($startDate && $endDate && $startTime && $endTime && $startDate === $endDate && $endTime <= $startTime) {
+                $validator->errors()->add('end_time', 'End time must be later than start time for same-day events.');
+            }
+        });
+
+        return $validator->validate();
+    }
+
     public function event()
     {
         $events = Event::with(['type', 'admin'])->latest()->get();
@@ -50,15 +93,7 @@ class EventController extends Controller
    public function store(Request $request)
 {
     try {
-        $validatedData = $request->validate([
-            'event_name' => 'required|string|max:255',
-            'type_id' => 'required|integer|exists:types,type_id',
-            'start_date' => 'required|date',
-            'end_date' => 'required|date|after_or_equal:start_date',
-            'start_time' => 'required',
-            'end_time' => 'required',
-            'description' => 'nullable|string',
-        ]);
+        $validatedData = $this->validateEvent($request);
 
         $now = Carbon::now('Asia/Manila');
         $startDateTime = Carbon::parse($validatedData['start_date'] . ' ' . $validatedData['start_time'], 'Asia/Manila');
@@ -89,7 +124,7 @@ class EventController extends Controller
     } catch (Exception $e) {
         return redirect()->back()
             ->withInput()
-            ->with('error', 'Failed to add Event. Invalid details provided.');
+            ->with('error', $this->eventErrorMessage($e, 'create'));
     }
 }
 
@@ -112,15 +147,7 @@ class EventController extends Controller
         try{
         $event = Event::findOrFail($id);
 
-        $validatedData = $request->validate([
-            'event_name' => 'required|string|max:255',
-            'type_id' => 'required|integer|exists:types,type_id',
-            'start_date' => 'required|date',
-            'end_date' => 'required|date|after_or_equal:start_date',
-            'start_time' => 'required',
-            'end_time' => 'required',
-            'description' => 'nullable|string',
-        ]);
+        $validatedData = $this->validateEvent($request);
 
         $event->update([
             'event_name' => $validatedData['event_name'],
@@ -136,7 +163,7 @@ class EventController extends Controller
         }catch(Exception $e) {
             return redirect()->back()
                 ->withInput()
-                ->with('error', 'Failed to Update Event. Please check the details and try again.');
+                ->with('error', $this->eventErrorMessage($e, 'update'));
         }
     }
 
@@ -150,7 +177,7 @@ class EventController extends Controller
         }catch(Exception $e) {
             return redirect()->back()
                 ->withInput()
-                ->with('error', 'Failed to delete Event. Please check the details and try again.');
+                ->with('error', $this->eventErrorMessage($e, 'delete'));
         }
 
     }
@@ -167,7 +194,7 @@ class EventController extends Controller
 } catch(Exception $e) {
     return redirect()->back()
         ->withInput()
-        ->with('error', 'Failed to mark event as completed. Please check the details and try again.');
+        ->with('error', $this->eventErrorMessage($e, 'finish'));
 }
 }
 }

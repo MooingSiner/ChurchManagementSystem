@@ -11,6 +11,7 @@ Route::post('attendance/scan', [AttendanceController::class, 'scanAttendance'])
 
 Route::middleware(['web', 'auth', 'role:super_admin'])->name('api.')->group(function () {
     Route::apiResource('members', MemberController::class);
+    Route::put('members/{member}/restore', [MemberController::class, 'restore'])->name('members.restore');
     Route::get('reports', [ReportController::class, 'index']);
 });
 

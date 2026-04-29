@@ -7,6 +7,8 @@ use App\Models\Event;
 use App\Models\Members;
 use App\Models\Attendance;
 use App\Models\AttendanceSession;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Database\QueryException;
 use Exception;
 
 class HomeController extends Controller
@@ -87,8 +89,14 @@ class HomeController extends Controller
             ->with('success', 'Attendance submitted! Waiting for administrator approval.');
     }
     catch(Exception $e){
+        $message = match (true) {
+            $e instanceof ModelNotFoundException => 'That member is no longer active. Choose another member or ask an administrator to restore the record.',
+            $e instanceof QueryException => 'Attendance has already been submitted for this session. Wait for approval or ask an administrator to review it.',
+            default => 'Could not submit attendance right now. Check the selected event/session and try again.',
+        };
+
         return redirect()->route('home')
-            ->with('error', 'Attendance already submitted for this event.');
+            ->with('error', $message);
     }
     }
 }

@@ -10,7 +10,18 @@ class MemberController extends Controller
 {
     public function index()
     {
-        $members = Members::with(['ministries'])->get();
+        $membersQuery = Members::with(['ministries']);
+
+        if (request()->boolean('only_archived')) {
+            $membersQuery->where('is_archived', true);
+        } elseif (! request()->boolean('include_archived')) {
+            $membersQuery->where('is_archived', false);
+        }
+
+        $members = $membersQuery
+            ->orderBy('member_fname')
+            ->orderBy('member_lname')
+            ->get();
 
         return response()->json([
             'success' => true,
@@ -120,12 +131,29 @@ class MemberController extends Controller
     {
         $member = Members::findOrFail($id);
 
-        $member->ministries()->detach();
-        $member->delete();
+        $member->update([
+            'is_archived' => true,
+            'archived_at' => now(),
+        ]);
 
         return response()->json([
             'success' => true,
-            'message' => 'Member deleted successfully.',
+            'message' => 'Member archived successfully.',
+        ]);
+    }
+
+    public function restore($id)
+    {
+        $member = Members::findOrFail($id);
+
+        $member->update([
+            'is_archived' => false,
+            'archived_at' => null,
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Member restored successfully.',
         ]);
     }
 }

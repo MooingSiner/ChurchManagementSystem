@@ -6,12 +6,37 @@ use App\Models\Attendance;
 use App\Models\AttendanceSession;
 use App\Models\Event;
 use App\Models\Members;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Exception;
 
 class AttendanceController extends Controller
 {
+    protected function attendanceErrorMessage(Exception $e, string $action): string
+    {
+        if ($e instanceof ModelNotFoundException) {
+            return 'The selected record could not be found. Refresh the page and try again.';
+        }
+
+        if ($e instanceof QueryException) {
+            return match ($action) {
+                'manual' => 'That member already has attendance recorded for this session. Search for another member or review the existing record.',
+                default => 'That attendance record conflicts with existing data. Refresh the page and try again.',
+            };
+        }
+
+        return match ($action) {
+            'session' => 'Could not create the attendance session. Check the event, date, and time fields, then try again.',
+            'manual' => 'Could not add attendance for that member. Make sure the member and session are valid, then try again.',
+            'approve' => 'Could not approve this attendance. Refresh the list and try again.',
+            'reject' => 'Could not reject this attendance. Refresh the list and try again.',
+            'remove' => 'Could not remove this attendance record. Refresh the list and try again.',
+            default => 'Could not save attendance right now. Please try again.',
+        };
+    }
+
     public function attendance(Request $request)
     {
         $events = Event::with('type')
@@ -109,7 +134,7 @@ class AttendanceController extends Controller
         } catch (Exception $e) {
             return redirect()->back()
                 ->withInput()
-                ->with('error', 'Failed to create attendance. Please check the details and try again.');
+                ->with('error', $this->attendanceErrorMessage($e, 'session'));
         }
     }
 
@@ -141,7 +166,7 @@ class AttendanceController extends Controller
         }catch(Exception $e) {
             return redirect()->back()
                 ->withInput()
-                ->with('error', 'Failed to add attendance. Please check the details and try again.');
+                ->with('error', $this->attendanceErrorMessage($e, 'manual'));
         }
     }
 
@@ -159,7 +184,7 @@ class AttendanceController extends Controller
         }catch(Exception $e) {
         return redirect()->back()
             ->withInput()
-            ->with('error', 'Failed to approve to attendance. Please check the details and try again.');
+            ->with('error', $this->attendanceErrorMessage($e, 'approve'));
     }
     }
 
@@ -175,7 +200,7 @@ class AttendanceController extends Controller
         (Exception $e) {
         return redirect()->back()
             ->withInput()
-            ->with('error', 'Failed to reject member to attendance. Please check the details and try again.');
+            ->with('error', $this->attendanceErrorMessage($e, 'reject'));
     }
     }
 
@@ -190,7 +215,7 @@ class AttendanceController extends Controller
         }catch(Exception $e) {
         return redirect()->back()
             ->withInput()
-            ->with('error', 'Failed to remove member from attendance. Please check the details and try again.');
+            ->with('error', $this->attendanceErrorMessage($e, 'remove'));
     }
     }
 }
