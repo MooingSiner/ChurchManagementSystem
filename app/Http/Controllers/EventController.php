@@ -76,7 +76,7 @@ class EventController extends Controller
     {
         $events = Event::with(['type', 'admin'])
             ->latest()
-            ->paginate(10)
+            ->paginate(6)
             ->withQueryString();
         $types = EventType::all();
 
@@ -102,7 +102,7 @@ class EventController extends Controller
 
     $events = Event::with(['type', 'admin'])
         ->latest()
-        ->paginate(10)
+        ->paginate(6)
         ->withQueryString();
     $types = EventType::all();
 

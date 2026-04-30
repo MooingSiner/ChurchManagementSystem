@@ -176,7 +176,7 @@ class AttendanceController extends Controller
                 },
             ])
             ->latest()
-            ->paginate(6, ['*'], 'sessions_page')
+            ->paginate(4, ['*'], 'sessions_page')
             ->withQueryString();
 
         $attendanceTypes = AttendanceSession::with('event.type')

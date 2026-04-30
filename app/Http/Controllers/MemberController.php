@@ -34,13 +34,13 @@ class MemberController extends Controller
             ->where('is_archived', false)
             ->orderBy('member_lname')
             ->orderBy('member_fname')
-            ->paginate(10, ['*'], 'members_page')
+            ->paginate(6, ['*'], 'members_page')
             ->withQueryString();
 
         $archivedMembers = Members::with(['ministries'])
             ->where('is_archived', true)
             ->orderByDesc('archived_at')
-            ->paginate(10, ['*'], 'archived_page')
+            ->paginate(6, ['*'], 'archived_page')
             ->withQueryString();
 
         $ministries = Ministry::all();
@@ -54,13 +54,13 @@ class MemberController extends Controller
         ->where('is_archived', false)
         ->orderBy('member_lname')
         ->orderBy('member_fname')
-        ->paginate(10, ['*'], 'members_page')
+        ->paginate(6, ['*'], 'members_page')
         ->withQueryString();
 
     $archivedMembers = Members::with(['ministries'])
         ->where('is_archived', true)
         ->orderByDesc('archived_at')
-        ->paginate(10, ['*'], 'archived_page')
+        ->paginate(6, ['*'], 'archived_page')
         ->withQueryString();
 
     $ministries = Ministry::all();
