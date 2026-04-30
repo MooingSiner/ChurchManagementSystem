@@ -8,9 +8,9 @@ use App\Http\Controllers\AttendanceController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\AuthController;
 use Illuminate\Support\Facades\Route;
-use Illuminate\Support\Facades\Auth;
 
 // Web Routes
+Route::redirect('/', '/home')->name('root');
 Route::get('/home', [HomeController::class, 'home'])->name('home');
 Route::get('/login', [AuthController::class, 'showlogin'])->name('login');
 Route::post('/login', [AuthController::class, 'login'])->name('auth.login.submit');
@@ -57,5 +57,4 @@ Route::middleware('auth')->group(function () {
     });
 });
 
-Route::get('/', [HomeController::class, 'home'])->name('home');
 Route::post('/home/attendance-submit', [HomeController::class, 'submitAttendance'])->name('home.attendance.submit');
