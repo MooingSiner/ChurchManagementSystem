@@ -420,6 +420,15 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
 <script>
 function showToast(message, type = 'success') {
+    if (typeof Toastify === 'undefined') {
+        const fallbackToast = document.createElement('div');
+        fallbackToast.textContent = message;
+        fallbackToast.className = `fixed right-4 top-4 z-[99999] max-w-sm rounded-lg px-4 py-3 text-sm shadow-lg ${type === 'error' ? 'bg-red-900' : 'bg-gray-950'} text-white`;
+        document.body.appendChild(fallbackToast);
+        window.setTimeout(() => fallbackToast.remove(), 4000);
+        return;
+    }
+
     Toastify({
         text: message,
         duration: 4000,
@@ -1009,10 +1018,10 @@ function validateManualForm(event) {
 // Show success/error toasts on page load if messages exist
 document.addEventListener('DOMContentLoaded', function() {
     @if(session('success'))
-        showToast('{{ session("success") }}', 'success');
+        showToast(@json(session('success')), 'success');
     @endif
     @if(session('error'))
-        showToast('{{ session("error") }}', 'error');
+        showToast(@json(session('error')), 'error');
     @endif
 });
 </script>

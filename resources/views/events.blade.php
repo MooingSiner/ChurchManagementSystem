@@ -528,6 +528,15 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
   <script>
 function showToast(message, type = 'success') {
+    if (typeof Toastify === 'undefined') {
+        const fallbackToast = document.createElement('div');
+        fallbackToast.textContent = message;
+        fallbackToast.className = `fixed right-4 top-4 z-[99999] max-w-sm rounded-lg px-4 py-3 text-sm shadow-lg ${type === 'error' ? 'bg-red-900' : 'bg-gray-950'} text-white`;
+        document.body.appendChild(fallbackToast);
+        window.setTimeout(() => fallbackToast.remove(), 3000);
+        return;
+    }
+
     Toastify({
         text: message,
         duration: 3000,
@@ -648,13 +657,13 @@ checkEvents();
 </script>
 @if(session('success'))
 <script>
-    showToast("{{ session('success') }}", "success");
+    showToast(@json(session('success')), "success");
 </script>
 @endif
 
 @if(session('error'))
 <script>
-    showToast("{{ session('error') }}", "error");
+    showToast(@json(session('error')), "error");
 </script>
 @endif
 <div id="confirmModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-[9999]">
