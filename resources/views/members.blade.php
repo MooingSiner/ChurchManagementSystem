@@ -59,7 +59,7 @@
           <div class="flex flex-wrap items-center gap-2 sm:gap-4">
     <!-- Logged-in User -->
     <div class="flex items-center gap-2 text-gray-700">
-        <img src="{{ asset('images/icons/user-icon.png') }}" alt="User Icon" class="h-6 w-6">
+        <img src="{{ asset('images/icons/User-Icon.png') }}" alt="User Icon" class="h-6 w-6">
         <div class="leading-tight">
           <div class="font-medium">{{ Auth::user()->username }}</div>
           <div class="text-xs text-gray-500">{{ $currentRoleLabel }}</div>
