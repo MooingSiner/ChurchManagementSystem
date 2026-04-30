@@ -110,9 +110,17 @@ RUN npm run build
 
 RUN php artisan storage:link || true
 
-# Clear any build-time Laravel caches
+# Clear build-time Laravel caches without touching the configured cache store.
 
-RUN php artisan optimize:clear
+RUN php artisan config:clear
+
+RUN php artisan route:clear
+
+RUN php artisan view:clear
+
+RUN php artisan event:clear
+
+RUN php artisan clear-compiled
 
 
 
