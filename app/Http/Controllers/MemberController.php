@@ -30,21 +30,38 @@ class MemberController extends Controller
 
     public function member()
     {
-        $members = Members::with(['ministries'])->get();
+        $members = Members::with(['ministries'])
+            ->where('is_archived', false)
+            ->orderBy('member_lname')
+            ->orderBy('member_fname')
+            ->paginate(10, ['*'], 'members_page')
+            ->withQueryString();
+
+        $archivedMembers = Members::with(['ministries'])
+            ->where('is_archived', true)
+            ->orderByDesc('archived_at')
+            ->paginate(10, ['*'], 'archived_page')
+            ->withQueryString();
+
         $ministries = Ministry::all();
 
-        return view('members', compact('members', 'ministries'));
+        return view('members', compact('members', 'archivedMembers', 'ministries'));
     }
 
     public function index()
 {
     $members = Members::with(['ministries'])
         ->where('is_archived', false)
-        ->get();
+        ->orderBy('member_lname')
+        ->orderBy('member_fname')
+        ->paginate(10, ['*'], 'members_page')
+        ->withQueryString();
 
     $archivedMembers = Members::with(['ministries'])
         ->where('is_archived', true)
-        ->get();
+        ->orderByDesc('archived_at')
+        ->paginate(10, ['*'], 'archived_page')
+        ->withQueryString();
 
     $ministries = Ministry::all();
 

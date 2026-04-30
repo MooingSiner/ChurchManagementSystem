@@ -46,6 +46,7 @@
 </head>
 <body class="bg-gray-50 bg-gradient-to-br from-blue-50 via-white to-purple-50">
   <div class="min-h-screen">
+    <div class="sticky top-0 z-40">
     <!-- Header with Navigation -->
     <div class="bg-white shadow-sm border-b">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -54,7 +55,7 @@
             <img src="{{ asset('images/icons/church-icon.png') }}" alt="Church Icon" class="h-10 w-10">
             <h1 class="text-xl font-semibold text-gray-900">Church Management</h1>
           </div>
-          <div class="flex flex-wrap items-center gap-2 sm:gap-4">
+          <div class="flex w-full flex-wrap items-center justify-between gap-2 sm:w-auto sm:justify-end sm:gap-4">
 
     <!-- Logged-in User -->
     <div class="flex items-center gap-2 text-gray-700">
@@ -125,6 +126,8 @@
       </div>
     </div>
 
+    </div>
+
     <!-- Main Content -->
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div class="space-y-6">
@@ -149,56 +152,48 @@
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <div class="bg-white rounded-lg shadow border">
             <div class="px-6 py-4">
-              <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-                <div>
-                  <p class="text-sm text-gray-600">Total Members</p>
-                  <p class="text-3xl font-semibold text-gray-900">{{ $totalMembers }}</p>
-                </div>
-                <svg class="h-8 w-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <p class="text-sm text-gray-600">Total Members</p>
+              <div class="mt-2 flex items-center justify-between gap-4">
+                <svg class="h-8 w-8 shrink-0 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
                 </svg>
+                <p class="text-3xl font-semibold text-gray-900 text-right">{{ $totalMembers }}</p>
               </div>
             </div>
           </div>
 
           <div class="bg-white rounded-lg shadow border">
             <div class="px-6 py-4">
-              <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-                <div>
-                  <p class="text-sm text-gray-600">Total Events</p>
-                  <p class="text-3xl font-semibold text-gray-900">{{ $totalEvents }}</p>
-                </div>
-                <svg class="h-8 w-8 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <p class="text-sm text-gray-600">Total Events</p>
+              <div class="mt-2 flex items-center justify-between gap-4">
+                <svg class="h-8 w-8 shrink-0 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
                 </svg>
+                <p class="text-3xl font-semibold text-gray-900 text-right">{{ $totalEvents }}</p>
               </div>
             </div>
           </div>
 
           <div class="bg-white rounded-lg shadow border">
             <div class="px-6 py-4">
-              <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-                <div>
-                  <p class="text-sm text-gray-600">Approved Attendance</p>
-                  <p class="text-3xl font-semibold text-gray-900">{{ $totalAttendance }}</p>
-                </div>
-                <svg class="h-8 w-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <p class="text-sm text-gray-600">Approved Attendance</p>
+              <div class="mt-2 flex items-center justify-between gap-4">
+                <svg class="h-8 w-8 shrink-0 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
                 </svg>
+                <p class="text-3xl font-semibold text-gray-900 text-right">{{ $totalAttendance }}</p>
               </div>
             </div>
           </div>
 
           <div class="bg-white rounded-lg shadow border">
             <div class="px-6 py-4">
-              <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-                <div>
-                  <p class="text-sm text-gray-600">Avg. Attendance / Session</p>
-                  <p class="text-3xl font-semibold text-gray-900">{{ $avgAttendance }}</p>
-                </div>
-                <svg class="h-8 w-8 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <p class="text-sm text-gray-600">Avg. Attendance / Session</p>
+              <div class="mt-2 flex items-center justify-between gap-4">
+                <svg class="h-8 w-8 shrink-0 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
                 </svg>
+                <p class="text-3xl font-semibold text-gray-900 text-right">{{ $avgAttendance }}</p>
               </div>
             </div>
           </div>

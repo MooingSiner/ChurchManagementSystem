@@ -74,7 +74,10 @@ class EventController extends Controller
 
     public function event()
     {
-        $events = Event::with(['type', 'admin'])->latest()->get();
+        $events = Event::with(['type', 'admin'])
+            ->latest()
+            ->paginate(10)
+            ->withQueryString();
         $types = EventType::all();
 
         return view('events', compact('events', 'types'));
@@ -97,7 +100,10 @@ class EventController extends Controller
         }
     });
 
-    $events = Event::with(['type', 'admin'])->latest()->get();
+    $events = Event::with(['type', 'admin'])
+        ->latest()
+        ->paginate(10)
+        ->withQueryString();
     $types = EventType::all();
 
     return view('events', compact('events', 'types'));

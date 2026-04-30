@@ -46,6 +46,7 @@
 </head>
 <body class="bg-gray-50 bg-gradient-to-br from-blue-50 via-white to-purple-50">
   <div class="min-h-screen">
+    <div class="sticky top-0 z-40">
     <div class="bg-white shadow-sm border-b">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex flex-col gap-3 py-4 sm:h-16 sm:flex-row sm:items-center sm:justify-between">
@@ -54,7 +55,7 @@
             <h1 class="text-xl font-semibold text-gray-900">Church Management</h1>
           </div>
 
-          <div class="flex flex-wrap items-center gap-2 sm:gap-4">
+          <div class="flex w-full flex-wrap items-center justify-between gap-2 sm:w-auto sm:justify-end sm:gap-4">
             <div class="flex items-center gap-2 text-gray-700">
               <img src="{{ asset('images/icons/User-Icon.png') }}" alt="User Icon" class="h-6 w-6">
               <div class="leading-tight">
@@ -120,6 +121,8 @@
           @endif
         </nav>
       </div>
+    </div>
+
     </div>
 
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -207,7 +210,7 @@
             </select>
             <select id="attendanceTypeFilter" onchange="filterAttendanceSessions()" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
               <option value="">All Types</option>
-              @foreach($attendanceSessions->pluck('event.type.type_name')->filter()->unique()->sort() as $typeName)
+              @foreach($attendanceTypes as $typeName)
                 <option value="{{ strtolower($typeName) }}">{{ $typeName }}</option>
               @endforeach
             </select>
@@ -343,6 +346,9 @@
               </div>
             </div>
             @endforeach
+          </div>
+          <div class="mt-6">
+            {{ $attendanceSessions->links() }}
           </div>
           <p id="attendanceNoResults" class="hidden text-sm text-gray-500">No attendance records match your search.</p>
         @else

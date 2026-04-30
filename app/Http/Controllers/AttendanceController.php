@@ -176,7 +176,16 @@ class AttendanceController extends Controller
                 },
             ])
             ->latest()
-            ->get();
+            ->paginate(6, ['*'], 'sessions_page')
+            ->withQueryString();
+
+        $attendanceTypes = AttendanceSession::with('event.type')
+            ->get()
+            ->pluck('event.type.type_name')
+            ->filter()
+            ->unique()
+            ->sort()
+            ->values();
 
         $selectedSessionId = $request->attendance_session_id;
         $isMarkingAttendance = false;
@@ -229,6 +238,7 @@ class AttendanceController extends Controller
         return view('attendance', compact(
             'events',
             'attendanceSessions',
+            'attendanceTypes',
             'selectedSession',
             'selectedEvent',
             'approvedAttendances',

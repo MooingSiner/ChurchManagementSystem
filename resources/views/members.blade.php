@@ -48,6 +48,7 @@
 <body class="bg-gray-50 bg-gradient-to-br from-blue-50 via-white to-purple-50">
   @php($canManageMembers = Auth::user()->role === 'super_admin')
   <div class="min-h-screen">
+    <div class="sticky top-0 z-40">
     <!-- Header with Navigation -->
     <div class="bg-white shadow-sm border-b">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -56,7 +57,7 @@
             <img src="{{ asset('images/icons/church-icon.png') }}" alt="Church Icon" class="h-10 w-10">
             <h1 class="text-xl font-semibold text-gray-900">Church Management</h1>
           </div>
-          <div class="flex flex-wrap items-center gap-2 sm:gap-4">
+          <div class="flex w-full flex-wrap items-center justify-between gap-2 sm:w-auto sm:justify-end sm:gap-4">
     <!-- Logged-in User -->
     <div class="flex items-center gap-2 text-gray-700">
         <img src="{{ asset('images/icons/User-Icon.png') }}" alt="User Icon" class="h-6 w-6">
@@ -125,6 +126,8 @@
           @endif
         </nav>
       </div>
+    </div>
+
     </div>
 
     <!-- Main Content -->
@@ -324,6 +327,9 @@
                 </div>
             @endforeach
         </div>
+        <div class="mt-6">
+            {{ $members->links() }}
+        </div>
         <p id="approvedNoResults" class="hidden mt-4 text-sm text-gray-500">No approved members match your search.</p>
     @endif
 </div>
@@ -465,6 +471,9 @@
                     </div>
                 </div>
             @endforeach
+        </div>
+        <div class="mt-6">
+            {{ $archivedMembers->links() }}
         </div>
         <p id="archivedNoResults" class="hidden mt-4 text-sm text-gray-500">No archived members match your search.</p>
     @endif
