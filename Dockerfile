@@ -110,6 +110,10 @@ RUN npm run build
 
 RUN php artisan storage:link || true
 
+# Clear any build-time Laravel caches
+
+RUN php artisan optimize:clear
+
 
 
 # Set permissions

@@ -532,15 +532,39 @@ async function startQrScanner() {
     }
 
     try {
-        const started = await startNativeQrScanner();
+        let started = false;
+
+        try {
+            started = await startNativeQrScanner();
+        } catch (error) {
+            await stopQrScanner();
+        }
+
         if (!started) {
             await startHtml5QrScanner();
         }
     } catch (error) {
-        status.textContent = 'Unable to access camera. Check permissions, Shield settings (if using Brave), or upload the QR image.';
+        await stopQrScanner();
+        status.textContent = cameraErrorMessage(error);
     } finally {
         scannerStarting = false;
     }
+}
+
+function cameraErrorMessage(error) {
+    if (error?.name === 'NotAllowedError' || error?.name === 'SecurityError') {
+        return 'Camera permission was blocked. Allow camera access in your browser settings, then try again.';
+    }
+
+    if (error?.name === 'NotFoundError' || error?.name === 'OverconstrainedError') {
+        return 'No usable camera was found. You can upload the downloaded QR image instead.';
+    }
+
+    if (error?.name === 'NotReadableError') {
+        return 'The camera is already in use or was blocked by the browser. Close other camera apps, then try again.';
+    }
+
+    return 'Unable to access camera. If you are using Brave, lower Shields for this site or allow camera access, then try again.';
 }
 
 async function canUseNativeBarcodeDetector() {
@@ -559,60 +583,69 @@ async function canUseNativeBarcodeDetector() {
 async function startNativeQrScanner() {
     const status = document.getElementById('scannerStatus');
     const reader = document.getElementById('qrReader');
+    let stream = null;
 
     if (!await canUseNativeBarcodeDetector()) {
         return false;
     }
 
-    const stream = await navigator.mediaDevices.getUserMedia({
-        audio: false,
-        video: {
-            facingMode: { ideal: 'environment' },
-            width: { ideal: 1280 },
-            height: { ideal: 720 }
-        }
-    });
+    try {
+        stream = await navigator.mediaDevices.getUserMedia({
+            audio: false,
+            video: {
+                facingMode: { ideal: 'environment' },
+                width: { ideal: 1280 },
+                height: { ideal: 720 }
+            }
+        });
 
-    barcodeDetector = new BarcodeDetector({ formats: ['qr_code'] });
-    qrScannerMode = 'native';
-    qrVideoStream = stream;
-    qrVideoElement = document.createElement('video');
-    qrVideoElement.setAttribute('autoplay', '');
-    qrVideoElement.setAttribute('muted', '');
-    qrVideoElement.setAttribute('playsinline', '');
-    qrVideoElement.className = 'h-full w-full object-cover';
-    qrVideoElement.srcObject = stream;
+        barcodeDetector = new BarcodeDetector({ formats: ['qr_code'] });
+        qrScannerMode = 'native';
+        qrVideoStream = stream;
+        qrVideoElement = document.createElement('video');
+        qrVideoElement.setAttribute('autoplay', '');
+        qrVideoElement.setAttribute('muted', '');
+        qrVideoElement.setAttribute('playsinline', '');
+        qrVideoElement.className = 'h-full w-full object-cover';
+        qrVideoElement.srcObject = stream;
 
-    reader.innerHTML = '';
-    reader.appendChild(qrVideoElement);
+        reader.innerHTML = '';
+        reader.appendChild(qrVideoElement);
 
-    await qrVideoElement.play();
-    status.textContent = 'Camera ready. Native QR detection is active.';
+        await qrVideoElement.play();
+        status.textContent = 'Camera ready. Native QR detection is active.';
 
-    const scanFrame = async () => {
-        if (qrScannerMode !== 'native' || !barcodeDetector || !qrVideoElement) {
-            return;
-        }
+        const scanFrame = async () => {
+            if (qrScannerMode !== 'native' || !barcodeDetector || !qrVideoElement) {
+                return;
+            }
 
-        try {
-            if (qrVideoElement.readyState >= HTMLMediaElement.HAVE_ENOUGH_DATA && !scanSubmitting) {
-                const barcodes = await barcodeDetector.detect(qrVideoElement);
-                const match = barcodes.find((barcode) => barcode.rawValue);
+            try {
+                if (qrVideoElement.readyState >= HTMLMediaElement.HAVE_ENOUGH_DATA && !scanSubmitting) {
+                    const barcodes = await barcodeDetector.detect(qrVideoElement);
+                    const match = barcodes.find((barcode) => barcode.rawValue);
 
-                if (match) {
-                    await submitScannedMember(match.rawValue);
+                    if (match) {
+                        await submitScannedMember(match.rawValue);
+                    }
+                }
+            } catch (error) {
+            } finally {
+                if (qrScannerMode === 'native') {
+                    qrScanLoopTimer = window.setTimeout(scanFrame, 90);
                 }
             }
-        } catch (error) {
-        } finally {
-            if (qrScannerMode === 'native') {
-                qrScanLoopTimer = window.setTimeout(scanFrame, 90);
-            }
-        }
-    };
+        };
 
-    qrScanLoopTimer = window.setTimeout(scanFrame, 120);
-    return true;
+        qrScanLoopTimer = window.setTimeout(scanFrame, 120);
+        return true;
+    } catch (error) {
+        if (stream) {
+            stream.getTracks().forEach((track) => track.stop());
+        }
+
+        throw error;
+    }
 }
 
 async function startHtml5QrScanner() {
