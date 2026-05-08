@@ -11,11 +11,16 @@ use Carbon\Carbon;
 
 class EventController extends Controller
 {
-    protected function validateEvent(Request $request): array
+    protected function validateEvent(Request $request, bool $enforceFutureStartDate = false): array
     {
+        $request->merge([
+            'start_time' => $request->input('start_time') ?: '06:00',
+            'end_time' => $request->input('end_time') ?: '23:59',
+        ]);
+
         $validator = Validator::make($request->all(), [
             'event_name' => 'required|string|max:255',
-            'start_date' => 'required|date',
+            'start_date' => 'required|date' . ($enforceFutureStartDate ? '|after_or_equal:today' : ''),
             'end_date' => 'required|date|after_or_equal:start_date',
             'start_time' => 'required|date_format:H:i',
             'end_time' => 'required|date_format:H:i',
@@ -49,7 +54,7 @@ class EventController extends Controller
 
     public function store(Request $request)
 {
-    $validatedData = $this->validateEvent($request);
+    $validatedData = $this->validateEvent($request, true);
 
     $now = Carbon::now('Asia/Manila');
     $startDateTime = Carbon::parse($validatedData['start_date'] . ' ' . $validatedData['start_time'], 'Asia/Manila');

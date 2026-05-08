@@ -56,12 +56,12 @@ class AttendanceController extends Controller
         }
     }
 
-    protected function validateSessionData(Request $request): array
+    protected function validateSessionData(Request $request, bool $enforceTodayOrLater = false): array
     {
         $request->merge([
             'attendance_date' => $this->normalizeDateInput($request->input('attendance_date')),
-            'time_in_start' => $this->normalizeTimeInput($request->input('time_in_start')),
-            'time_out_end' => $this->normalizeTimeInput($request->input('time_out_end')),
+            'time_in_start' => $this->normalizeTimeInput($request->input('time_in_start') ?: '08:00'),
+            'time_out_end' => $this->normalizeTimeInput($request->input('time_out_end') ?: '18:00'),
         ]);
 
         $eventId = $request->input('event_id');
@@ -69,7 +69,7 @@ class AttendanceController extends Controller
 
         $validator = validator($request->all(), [
             'attendance_name' => 'required|string|max:255',
-            'attendance_date' => 'required|date',
+            'attendance_date' => 'required|date' . ($enforceTodayOrLater ? '|after_or_equal:today' : ''),
             'time_in_start' => 'nullable|date_format:H:i',
             'time_out_end' => 'nullable|date_format:H:i',
         ]);
@@ -160,13 +160,9 @@ class AttendanceController extends Controller
         };
     }
 
-    public function attendance(Request $request)
+    private function filteredAttendanceSessions(Request $request)
     {
-        $events = Event::with('type')
-            ->orderBy('start_date', 'desc')
-            ->get();
-
-        $attendanceSessions = AttendanceSession::with(['event.type'])
+        return AttendanceSession::with(['event.type'])
             ->withCount([
                 'attendances as approved_attendance_count' => function ($query) {
                     $query->where('status', 'Present');
@@ -175,6 +171,40 @@ class AttendanceController extends Controller
                     $query->where('status', 'Pending');
                 },
             ])
+            ->when(trim((string) $request->query('attendance_search', '')) !== '', function ($query) use ($request) {
+                $search = trim((string) $request->query('attendance_search'));
+
+                $query->where(function ($query) use ($search) {
+                    $query->where('attendance_name', 'like', "%{$search}%")
+                        ->orWhereDate('attendance_date', $search)
+                        ->orWhereHas('event', function ($query) use ($search) {
+                            $query->where('event_name', 'like', "%{$search}%");
+                        })
+                        ->orWhereHas('event.type', function ($query) use ($search) {
+                            $query->where('type_name', 'like', "%{$search}%");
+                        });
+                });
+            })
+            ->when($request->query('event_id'), function ($query, $eventId) {
+                $query->where('event_id', $eventId);
+            })
+            ->when($request->query('type_name'), function ($query, $typeName) {
+                $query->whereHas('event.type', function ($query) use ($typeName) {
+                    $query->where('type_name', $typeName);
+                });
+            })
+            ->when($request->query('attendance_date'), function ($query, $date) {
+                $query->whereDate('attendance_date', $date);
+            });
+    }
+
+    public function attendance(Request $request)
+    {
+        $events = Event::with('type')
+            ->orderBy('start_date', 'desc')
+            ->get();
+
+        $attendanceSessions = $this->filteredAttendanceSessions($request)
             ->latest()
             ->paginate(4, ['*'], 'sessions_page')
             ->withQueryString();
@@ -254,7 +284,7 @@ class AttendanceController extends Controller
     public function storeSession(Request $request)
     {
         try {
-            $validated = $this->validateSessionData($request);
+            $validated = $this->validateSessionData($request, true);
             $request->validate([
                 'event_id' => 'required|exists:events,event_id',
             ]);

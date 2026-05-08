@@ -42,7 +42,28 @@
     button, a.inline-flex { transition-property: transform, color, background-color, border-color, box-shadow, opacity; }
     button:hover, a.inline-flex:hover { transform: translateY(-1px); }
   }
-</style>
+
+  .responsive-pagination {
+    max-width: 100%;
+    overflow-x: auto;
+    padding-bottom: 0.25rem;
+  }
+
+  .responsive-pagination nav > div {
+    gap: 0.75rem;
+  }
+
+  @media (max-width: 640px) {
+    .responsive-pagination nav > div {
+      align-items: stretch;
+      flex-direction: column;
+    }
+
+    .responsive-pagination nav .hidden {
+      display: none !important;
+    }
+  }
+  </style>
 </head>
 <body class="bg-gray-50 bg-gradient-to-br from-blue-50 via-white to-purple-50">
   <div class="min-h-screen">
@@ -157,7 +178,7 @@
 
         <!-- Events Grid -->
         
-          @if($events->isEmpty())
+          @if($events->isEmpty() && ! request()->hasAny(['event_search', 'type_id', 'status', 'event_date']))
     <div class="bg-white border border-gray-200 rounded-lg p-12 mt-6">
         <div class="flex flex-col items-center justify-center py-12">
             <svg class="w-16 h-16 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -179,7 +200,7 @@
         </div>
     </div>
 @else
-    <div class="grid grid-cols-1 gap-3 lg:grid-cols-5">
+    <form method="GET" action="{{ route('events.index') }}" class="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-6">
         <div class="relative lg:col-span-2">
             <svg class="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
@@ -187,25 +208,34 @@
             <input
                 type="text"
                 id="eventSearch"
+                name="event_search"
+                value="{{ request('event_search') }}"
                 placeholder="Search event name or description..."
                 class="w-full pl-10 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                onkeyup="filterEventCards()"
             />
         </div>
-        <select id="eventTypeFilter" onchange="filterEventCards()" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+        <select id="eventTypeFilter" name="type_id" onchange="this.form.submit()" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
             <option value="">All Types</option>
             @foreach($types as $type)
-                <option value="{{ strtolower($type->type_name) }}">{{ $type->type_name }}</option>
+                <option value="{{ $type->type_id }}" @selected((string) request('type_id') === (string) $type->type_id)>{{ $type->type_name }}</option>
             @endforeach
         </select>
-        <select id="eventStatusFilter" onchange="filterEventCards()" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+        <select id="eventStatusFilter" name="status" onchange="this.form.submit()" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
             <option value="">All Statuses</option>
-            <option value="upcoming">Upcoming</option>
-            <option value="ongoing">Ongoing</option>
-            <option value="finished">Finished</option>
+            <option value="upcoming" @selected(request('status') === 'upcoming')>Upcoming</option>
+            <option value="ongoing" @selected(request('status') === 'ongoing')>Ongoing</option>
+            <option value="finished" @selected(request('status') === 'finished')>Finished</option>
         </select>
-        <input id="eventDateFilter" type="date" onchange="filterEventCards()" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-    </div>
+        <input id="eventDateFilter" name="event_date" value="{{ request('event_date') }}" type="date" onchange="this.form.submit()" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+        <div class="grid grid-cols-2 gap-2 sm:col-span-2 xl:col-span-1">
+            <button type="submit" class="px-4 py-2 rounded-md text-sm font-medium text-[#F2F8FF] bg-[#030213] hover:bg-[#0a0920]">
+                Search
+            </button>
+            <a href="{{ route('events.index') }}" class="px-4 py-2 rounded-md border border-gray-300 text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 text-center">
+                Clear
+            </a>
+        </div>
+    </form>
 
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         @foreach($events as $event)
@@ -343,9 +373,11 @@
 @endforeach
             </div>
             <div class="mt-6">
-                {{ $events->links() }}
+                <div class="responsive-pagination">
+                    {{ $events->links() }}
+                </div>
             </div>
-            <p id="eventNoResults" class="hidden text-sm text-gray-500">No events match your search.</p>
+            <p id="eventNoResults" class="{{ $events->isEmpty() ? '' : 'hidden' }} text-sm text-gray-500">No events match your search.</p>
         @endif
           
         </div>
@@ -392,6 +424,8 @@
                 id="startDate"
                 name="start_date"
                 type="date"
+                value="{{ old('start_date', now('Asia/Manila')->toDateString()) }}"
+                min="{{ now('Asia/Manila')->toDateString() }}"
                 class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 required
               />
@@ -402,6 +436,7 @@
                 id="startTime"
                 name="start_time"
                 type="time"
+                value="{{ old('start_time', '06:00') }}"
                 class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 required
               />
@@ -415,6 +450,8 @@
                 id="endDate"
                 name="end_date"
                 type="date"
+                value="{{ old('end_date', old('start_date', now('Asia/Manila')->toDateString())) }}"
+                min="{{ old('start_date', now('Asia/Manila')->toDateString()) }}"
                 class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 required
               />
@@ -425,6 +462,7 @@
                 id="endTime"
                 name="end_time"
                 type="time"
+                value="{{ old('end_time', '23:59') }}"
                 class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 required
               />
@@ -569,11 +607,57 @@ function showToast(message, type = 'success') {
     }
 
     function openEventModal() {
+        setCreateEventDefaults();
         document.getElementById('eventModal').classList.remove('hidden');
     }
 
     function closeEventModal() {
         document.getElementById('eventModal').classList.add('hidden');
+    }
+
+    function todayDateValue() {
+        const today = new Date();
+        const offsetDate = new Date(today.getTime() - today.getTimezoneOffset() * 60000);
+        return offsetDate.toISOString().slice(0, 10);
+    }
+
+    function syncEventEndDateMin(startInput, endInput) {
+        if (!startInput || !endInput) {
+            return;
+        }
+
+        const minStartDate = startInput.min;
+
+        if (minStartDate && (!startInput.value || startInput.value < minStartDate)) {
+            startInput.value = minStartDate;
+        }
+
+        endInput.min = startInput.value;
+
+        if (!endInput.value || endInput.value < startInput.value) {
+            endInput.value = startInput.value;
+        }
+    }
+
+    function setCreateEventDefaults() {
+        const startDate = document.getElementById('startDate');
+        const endDate = document.getElementById('endDate');
+        const startTime = document.getElementById('startTime');
+        const endTime = document.getElementById('endTime');
+
+        if (startDate) {
+            startDate.min = todayDateValue();
+        }
+
+        syncEventEndDateMin(startDate, endDate);
+
+        if (startTime && !startTime.value) {
+            startTime.value = '06:00';
+        }
+
+        if (endTime && !endTime.value) {
+            endTime.value = '23:59';
+        }
     }
 
     function openEditEventModal(id, eventName, typeId, startDate, endDate, startTime, endTime, description) {
@@ -587,9 +671,27 @@ function showToast(message, type = 'success') {
         document.getElementById('edit_start_time').value = startTime;
         document.getElementById('edit_end_time').value = endTime;
         document.getElementById('edit_description').value = description ?? '';
+        syncEventEndDateMin(document.getElementById('edit_start_date'), document.getElementById('edit_end_date'));
 
         document.getElementById('editEventModal').classList.remove('hidden');
     }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        const startDate = document.getElementById('startDate');
+        const endDate = document.getElementById('endDate');
+        const editStartDate = document.getElementById('edit_start_date');
+        const editEndDate = document.getElementById('edit_end_date');
+
+        setCreateEventDefaults();
+
+        startDate?.addEventListener('change', function () {
+            syncEventEndDateMin(startDate, endDate);
+        });
+
+        editStartDate?.addEventListener('change', function () {
+            syncEventEndDateMin(editStartDate, editEndDate);
+        });
+    });
 
     function closeEditEventModal() {
         document.getElementById('editEventModal').classList.add('hidden');

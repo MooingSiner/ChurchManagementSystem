@@ -28,17 +28,48 @@ class MemberController extends Controller
         return "Could not {$action} the member right now. Refresh the page and try again.";
     }
 
-    public function member()
+    private function filteredMembers(Request $request, bool $archived)
     {
-        $members = Members::with(['ministries'])
-            ->where('is_archived', false)
+        $search = trim((string) $request->query('member_search', ''));
+        $ministryId = $request->query('ministry_id');
+        $gender = $request->query('gender');
+
+        return Members::with(['ministries'])
+            ->where('is_archived', $archived)
+            ->when($search !== '', function ($query) use ($search) {
+                $query->where(function ($query) use ($search) {
+                    $query->where('member_fname', 'like', "%{$search}%")
+                        ->orWhere('member_mname', 'like', "%{$search}%")
+                        ->orWhere('member_lname', 'like', "%{$search}%")
+                        ->orWhere('email', 'like', "%{$search}%")
+                        ->orWhere('phone_number', 'like', "%{$search}%")
+                        ->orWhere('street', 'like', "%{$search}%")
+                        ->orWhere('city', 'like', "%{$search}%")
+                        ->orWhere('province', 'like', "%{$search}%")
+                        ->orWhereHas('ministries', function ($query) use ($search) {
+                            $query->where('ministry_name', 'like', "%{$search}%");
+                        });
+                });
+            })
+            ->when($ministryId, function ($query) use ($ministryId) {
+                $query->whereHas('ministries', function ($query) use ($ministryId) {
+                    $query->where('ministries.ministry_id', $ministryId);
+                });
+            })
+            ->when($gender, function ($query) use ($gender) {
+                $query->where('gender', $gender);
+            });
+    }
+
+    public function member(Request $request)
+    {
+        $members = $this->filteredMembers($request, false)
             ->orderBy('member_lname')
             ->orderBy('member_fname')
             ->paginate(6, ['*'], 'members_page')
             ->withQueryString();
 
-        $archivedMembers = Members::with(['ministries'])
-            ->where('is_archived', true)
+        $archivedMembers = $this->filteredMembers($request, true)
             ->orderByDesc('archived_at')
             ->paginate(6, ['*'], 'archived_page')
             ->withQueryString();
@@ -48,17 +79,15 @@ class MemberController extends Controller
         return view('members', compact('members', 'archivedMembers', 'ministries'));
     }
 
-    public function index()
+    public function index(Request $request)
 {
-    $members = Members::with(['ministries'])
-        ->where('is_archived', false)
+    $members = $this->filteredMembers($request, false)
         ->orderBy('member_lname')
         ->orderBy('member_fname')
         ->paginate(6, ['*'], 'members_page')
         ->withQueryString();
 
-    $archivedMembers = Members::with(['ministries'])
-        ->where('is_archived', true)
+    $archivedMembers = $this->filteredMembers($request, true)
         ->orderByDesc('archived_at')
         ->paginate(6, ['*'], 'archived_page')
         ->withQueryString();

@@ -29,12 +29,17 @@ class EventController extends Controller
         };
     }
 
-    protected function validateEvent(Request $request): array
+    protected function validateEvent(Request $request, bool $enforceFutureStartDate = false): array
     {
+        $request->merge([
+            'start_time' => $request->input('start_time') ?: '06:00',
+            'end_time' => $request->input('end_time') ?: '23:59',
+        ]);
+
         $validator = Validator::make($request->all(), [
             'event_name' => 'required|string|max:255',
             'type_id' => 'required|integer|exists:types,type_id',
-            'start_date' => 'required|date',
+            'start_date' => 'required|date' . ($enforceFutureStartDate ? '|after_or_equal:today' : ''),
             'end_date' => 'required|date|after_or_equal:start_date',
             'start_time' => 'required|date_format:H:i',
             'end_time' => 'required|date_format:H:i',
@@ -72,9 +77,38 @@ class EventController extends Controller
         return 'finished';
     }
 
-    public function event()
+    private function filteredEvents(Request $request)
     {
-        $events = Event::with(['type', 'admin'])
+        $search = trim((string) $request->query('event_search', ''));
+        $typeId = $request->query('type_id');
+        $status = $request->query('status');
+        $date = $request->query('event_date');
+
+        return Event::with(['type', 'admin'])
+            ->when($search !== '', function ($query) use ($search) {
+                $query->where(function ($query) use ($search) {
+                    $query->where('event_name', 'like', "%{$search}%")
+                        ->orWhere('description', 'like', "%{$search}%")
+                        ->orWhereHas('type', function ($query) use ($search) {
+                            $query->where('type_name', 'like', "%{$search}%");
+                        });
+                });
+            })
+            ->when($typeId, function ($query) use ($typeId) {
+                $query->where('type_id', $typeId);
+            })
+            ->when($status, function ($query) use ($status) {
+                $query->where('status', $status);
+            })
+            ->when($date, function ($query) use ($date) {
+                $query->whereDate('start_date', '<=', $date)
+                    ->whereDate('end_date', '>=', $date);
+            });
+    }
+
+    public function event(Request $request)
+    {
+        $events = $this->filteredEvents($request)
             ->latest()
             ->paginate(6)
             ->withQueryString();
@@ -83,7 +117,7 @@ class EventController extends Controller
         return view('events', compact('events', 'types'));
     }
 
-  public function index()
+  public function index(Request $request)
 {
     Event::all()->each(function ($event) {
         $now = Carbon::now('Asia/Manila');
@@ -100,7 +134,7 @@ class EventController extends Controller
         }
     });
 
-    $events = Event::with(['type', 'admin'])
+    $events = $this->filteredEvents($request)
         ->latest()
         ->paginate(6)
         ->withQueryString();
@@ -117,7 +151,7 @@ class EventController extends Controller
    public function store(Request $request)
 {
     try {
-        $validatedData = $this->validateEvent($request);
+        $validatedData = $this->validateEvent($request, true);
 
         Event::create([
             'event_name' => $validatedData['event_name'],
